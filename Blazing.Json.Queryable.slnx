@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/Blazing.Json.Queryable.Benchmarks/Blazing.Json.Queryable.Benchmarks.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/Blazing.Json.Queryable.Samples/Blazing.Json.Queryable.Samples.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="cleanbuild.ps1" />
+    <File Path="CODE_OF_CONDUCT.md" />
+    <File Path="CONTRIBUTING.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Blazing.Json.Queryable/Blazing.Json.Queryable.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Blazing.Json.Queryable.Tests/Blazing.Json.Queryable.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,12 @@
+[
+  { "id": 1, "name": "Alice Johnson", "age": 28, "city": "London", "email": "alice@example.com", "isActive": true },
+  { "id": 2, "name": "Bob Smith", "age": 35, "city": "New York", "email": "bob@example.com", "isActive": true },
+  { "id": 3, "name": "Charlie Brown", "age": 22, "city": "London", "email": "charlie@example.com", "isActive": false },
+  { "id": 4, "name": "Diana Prince", "age": 31, "city": "Paris", "email": "diana@example.com", "isActive": true },
+  { "id": 5, "name": "Eve Wilson", "age": 27, "city": "Tokyo", "email": "eve@example.com", "isActive": true },
+  { "id": 6, "name": "Frank Miller", "age": 45, "city": "London", "email": "frank@example.com", "isActive": false },
+  { "id": 7, "name": "Grace Lee", "age": 29, "city": "Seoul", "email": "grace@example.com", "isActive": true },
+  { "id": 8, "name": "Henry Davis", "age": 33, "city": "New York", "email": "henry@example.com", "isActive": true },
+  { "id": 9, "name": "Iris Chen", "age": 26, "city": "Beijing", "email": "iris@example.com", "isActive": true },
+  { "id": 10, "name": "Jack Robinson", "age": 38, "city": "Sydney", "email": "jack@example.com", "isActive": false }
+]

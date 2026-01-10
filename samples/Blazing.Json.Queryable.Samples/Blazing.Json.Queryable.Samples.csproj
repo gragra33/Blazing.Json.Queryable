@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>14.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    
+    <!-- Sample Project Metadata -->
+    <AssemblyName>Blazing.Json.Queryable.Samples</AssemblyName>
+    <RootNamespace>Blazing.Json.Queryable.Samples</RootNamespace>
+    <Description>Sample application demonstrating Blazing.Json.Queryable features including basic queries, streaming, UTF-8 processing, JSONPath, and performance comparisons</Description>
+    <Authors>Graeme Grant</Authors>
+    <Copyright>Copyright © 2026 Graeme Grant. All rights reserved.</Copyright>
+    
+    <!-- Not packaged - samples are for demonstration only -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Blazing.Json.Queryable\Blazing.Json.Queryable.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Copy all JSON files from Data folder to output directory -->
+    <None Update="Data\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,12 @@
+[
+  { "orderId": 1001, "customerId": 1, "productName": "Laptop", "quantity": 1, "price": 1299.99, "orderDate": "2024-01-15", "status": "Shipped" },
+  { "orderId": 1002, "customerId": 2, "productName": "Mouse", "quantity": 2, "price": 29.99, "orderDate": "2024-01-16", "status": "Delivered" },
+  { "orderId": 1003, "customerId": 1, "productName": "Keyboard", "quantity": 1, "price": 89.99, "orderDate": "2024-01-17", "status": "Processing" },
+  { "orderId": 1004, "customerId": 3, "productName": "Monitor", "quantity": 2, "price": 349.99, "orderDate": "2024-01-18", "status": "Shipped" },
+  { "orderId": 1005, "customerId": 4, "productName": "Webcam", "quantity": 1, "price": 79.99, "orderDate": "2024-01-19", "status": "Delivered" },
+  { "orderId": 1006, "customerId": 2, "productName": "Headset", "quantity": 1, "price": 149.99, "orderDate": "2024-01-20", "status": "Processing" },
+  { "orderId": 1007, "customerId": 5, "productName": "USB Cable", "quantity": 5, "price": 9.99, "orderDate": "2024-01-21", "status": "Shipped" },
+  { "orderId": 1008, "customerId": 3, "productName": "Laptop", "quantity": 1, "price": 1499.99, "orderDate": "2024-01-22", "status": "Delivered" },
+  { "orderId": 1009, "customerId": 6, "productName": "Mouse Pad", "quantity": 3, "price": 14.99, "orderDate": "2024-01-23", "status": "Processing" },
+  { "orderId": 1010, "customerId": 7, "productName": "Docking Station", "quantity": 1, "price": 249.99, "orderDate": "2024-01-24", "status": "Shipped" }
+]

@@ -1,0 +1,70 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>14.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    
+    <!-- NuGet Package Metadata -->
+    <PackageId>Blazing.Json.Queryable</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Graeme Grant</Authors>
+    <Company>Graeme Grant</Company>
+    <Copyright>Copyright © 2026 Graeme Grant. All rights reserved.</Copyright>
+    <Description>High-performance LINQ provider for JSON data that processes JSON directly without full deserialization. Supports standard string, UTF-8, streaming, and advanced streaming JSONPath operations. Dramatically improves performance and memory efficiency for medium to large JSON files through early termination and constant memory usage. Includes native IAsyncEnumerable support and .NET 10 async LINQ integration.</Description>
+    <PackageTags>linq;json;queryable;system.text.json;span;performance;utf8;async;streaming;iasyncenumerable;jsonpath;linq-provider;high-performance;memory-efficient;early-termination</PackageTags>
+    <PackageProjectUrl>https://github.com/gragra33/Blazing.Json.Queryable</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/gragra33/Blazing.Json.Queryable</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReleaseNotes>
+		V1.0.0 - 10 January, 2026 - Initial Release
+		- Custom LINQ provider for JSON with 60+ LINQ methods
+		- Direct JSON processing without full deserialization
+		- Memory-efficient streaming for files larger than RAM
+		- Early termination support (10-20x faster for Take/First)
+		- .NET 10 async LINQ with async predicates
+		- Zero-allocation UTF-8 processing
+		- Basic JSONPath support for nested navigation
+	</PackageReleaseNotes>
+    
+    <!-- Documentation -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+    
+    <!-- Symbol Package (.snupkg) Support -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedAllSources>true</EmbedAllSources>
+    <PublishRepositoryUrl Condition="'$(CI)' == 'true'">true</PublishRepositoryUrl>
+    <DebugType>embedded</DebugType>
+    
+    <!-- Deterministic builds for reproducibility -->
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Utf8JsonAsyncStreamReader" />
+    
+    <!-- SourceLink for debugging support (only in CI builds to avoid warnings) -->
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" Condition="'$(CI)' == 'true'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Include README in NuGet package -->
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <!-- Include LICENSE file -->
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
+
+    <!-- Include contributing and other important files -->
+    <None Include="..\..\CONTRIBUTING.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\CODE_OF_CONDUCT.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

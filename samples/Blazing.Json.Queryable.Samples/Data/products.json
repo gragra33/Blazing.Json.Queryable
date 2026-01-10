@@ -1,0 +1,12 @@
+[
+  { "productId": 101, "name": "Laptop Pro", "category": "Computers", "price": 1299.99, "stock": 45, "rating": 4.5 },
+  { "productId": 102, "name": "Wireless Mouse", "category": "Accessories", "price": 29.99, "stock": 150, "rating": 4.2 },
+  { "productId": 103, "name": "Mechanical Keyboard", "category": "Accessories", "price": 89.99, "stock": 78, "rating": 4.7 },
+  { "productId": 104, "name": "4K Monitor", "category": "Displays", "price": 349.99, "stock": 32, "rating": 4.6 },
+  { "productId": 105, "name": "HD Webcam", "category": "Accessories", "price": 79.99, "stock": 95, "rating": 4.1 },
+  { "productId": 106, "name": "Gaming Headset", "category": "Audio", "price": 149.99, "stock": 62, "rating": 4.8 },
+  { "productId": 107, "name": "USB-C Cable", "category": "Cables", "price": 9.99, "stock": 500, "rating": 4.0 },
+  { "productId": 108, "name": "Laptop Air", "category": "Computers", "price": 1499.99, "stock": 28, "rating": 4.9 },
+  { "productId": 109, "name": "Mouse Pad XL", "category": "Accessories", "price": 14.99, "stock": 200, "rating": 4.3 },
+  { "productId": 110, "name": "Docking Station", "category": "Accessories", "price": 249.99, "stock": 15, "rating": 4.4 }
+]
