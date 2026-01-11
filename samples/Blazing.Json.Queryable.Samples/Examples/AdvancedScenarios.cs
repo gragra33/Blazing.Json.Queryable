@@ -81,7 +81,7 @@ public static class AdvancedScenarios
                 currentCategory = product.Category;
                 Console.WriteLine($"\n   {currentCategory}:");
             }
-            Console.WriteLine($"     - {product.Name}: ${product.Price:F2} (★{product.Rating})");
+            Console.WriteLine($"     - {product.Name}: ${product.Price:F2} (rating: {product.Rating})");
         }
         Console.WriteLine();
     }
@@ -102,7 +102,7 @@ public static class AdvancedScenarios
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"      [OK] Caught {ex.GetType().Name}: {ex.Message.Split('\n')[0]}");
+            Console.WriteLine($"      * Caught {ex.GetType().Name}: {ex.Message.Split('\n')[0]}");
         }
         
         // Empty results
@@ -113,14 +113,14 @@ public static class AdvancedScenarios
         var emptyResults = JsonQueryable<Person>.FromString(json)
             .Where(p => p.Age > 1000)
             .ToList();
-        Console.WriteLine($"      [OK] Empty query returned {emptyResults.Count} results (no exception)");
+        Console.WriteLine($"      * Empty query returned {emptyResults.Count} results (no exception)");
         
         // FirstOrDefault vs First
         Console.WriteLine("\n   c) FirstOrDefault vs First:");
         var nullResult = JsonQueryable<Person>.FromString(json)
             .Where(p => p.City == "Mars")
             .FirstOrDefault();
-        Console.WriteLine($"      [OK] FirstOrDefault returned: {nullResult?.Name ?? "null (safe)"}");
+        Console.WriteLine($"      * FirstOrDefault returned: {nullResult?.Name ?? "null (safe)"}");
         
         try
         {
@@ -130,7 +130,7 @@ public static class AdvancedScenarios
         }
         catch (InvalidOperationException ex)
         {
-            Console.WriteLine($"      [OK] First threw exception: {ex.Message}");
+            Console.WriteLine($"      * First threw exception: {ex.Message}");
         }
         
         Console.WriteLine();
@@ -222,7 +222,7 @@ public static class AdvancedScenarios
             Console.WriteLine($"   {approach,-14} {time,5}        {memory,6}");
         }
         
-        Console.WriteLine("\n   [OK] Performance metrics collected successfully");
+        Console.WriteLine("\n   * Performance metrics collected successfully");
         Console.WriteLine();
     }
     
@@ -247,22 +247,22 @@ public static class AdvancedScenarios
         // Build query dynamically
         if (!string.IsNullOrEmpty(filterCategory))
         {
-            query = (JsonQueryable<Product>)query.Where(p => p.Category == filterCategory);
+            query = query.Where(p => p.Category == filterCategory);
         }
         
         if (minPrice > 0)
         {
-            query = (JsonQueryable<Product>)query.Where(p => p.Price >= minPrice);
+            query = query.Where(p => p.Price >= minPrice);
         }
         
         if (maxPrice > 0)
         {
-            query = (JsonQueryable<Product>)query.Where(p => p.Price <= maxPrice);
+            query = query.Where(p => p.Price <= maxPrice);
         }
         
         if (minRating > 0)
         {
-            query = (JsonQueryable<Product>)query.Where(p => p.Rating >= minRating);
+            query = query.Where(p => p.Rating >= minRating);
         }
         
         var results = query
@@ -276,17 +276,17 @@ public static class AdvancedScenarios
             .ToList();
         
         Console.WriteLine($"   Filters applied:");
-        Console.WriteLine($"     Category: {filterCategory}");
-        Console.WriteLine($"     Price: ${minPrice}-${maxPrice}");
+        Console.WriteLine($"     Category:   {filterCategory}");
+        Console.WriteLine($"     Price:      ${minPrice}-${maxPrice}");
         Console.WriteLine($"     Min Rating: {minRating}");
         Console.WriteLine($"\n   Results ({results.Count}):");
         
         foreach (var product in results)
         {
-            Console.WriteLine($"   - {product.Name}: ${product.Price:F2} ([*]{product.Rating})");
+            Console.WriteLine($"   - {product.Name}: {new string(' ', 20 - product.Name.Length)} ${product.Price:F2} (rating: {product.Rating})");
         }
         
-        Console.WriteLine("\n   [OK] Dynamic query building successful");
+        Console.WriteLine("\n   * Dynamic query building successful");
         Console.WriteLine();
     }
 }

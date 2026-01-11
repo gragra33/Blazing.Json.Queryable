@@ -84,7 +84,7 @@ public static class StreamQueries
         Console.WriteLine($"   Found {results.Count} results in {sw.ElapsedMilliseconds}ms");
         Console.WriteLine($"   Memory used: ~{memoryUsed:F2} MB (includes result objects)");
         Console.WriteLine($"   File size: {fileInfo.Length / 1024.0 / 1024.0:F2} MB");
-        Console.WriteLine($"   ? Memory usage is constant, independent of file size");
+        Console.WriteLine("   * Memory usage is constant, independent of file size");
         Console.WriteLine();
     }
     
@@ -132,7 +132,7 @@ public static class StreamQueries
         Console.WriteLine($"\n   In-Memory: {sw1.ElapsedMilliseconds}ms, ~{inMemoryMB:F3} MB");
         Console.WriteLine($"   Stream:    {sw2.ElapsedMilliseconds}ms, ~{streamMB:F3} MB");
         Console.WriteLine($"   Memory savings: {(1 - streamMB / inMemoryMB) * 100:F1}%");
-        Console.WriteLine($"   ? Results match: {count1 == count2}");
+        Console.WriteLine($"   * Results match: {count1 == count2}");
         Console.WriteLine();
     }
     

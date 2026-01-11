@@ -73,6 +73,7 @@ public static class CustomConverters
         
         var options = new JsonSerializerOptions
         {
+            PropertyNameCaseInsensitive = true,
             Converters = { new DateOnlyJsonConverter() }
         };
         
@@ -108,6 +109,7 @@ public static class CustomConverters
         
         var options = new JsonSerializerOptions
         {
+            PropertyNameCaseInsensitive = true,
             Converters = { new JsonStringEnumConverter() }
         };
         

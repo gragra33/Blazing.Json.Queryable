@@ -16,9 +16,9 @@ public static class AdvancedLinqOperationsSamples
 
     public static void RunAll()
     {
-        Console.WriteLine("+================================================================+");
-        Console.WriteLine("|        Advanced LINQ Operations - Comprehensive Examples      |");
-        Console.WriteLine("+================================================================+");
+        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("Advanced LINQ Operations - Comprehensive Examples");
+        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine();
 
         ChunkOperation_BatchProcessing();
@@ -43,9 +43,8 @@ public static class AdvancedLinqOperationsSamples
 
     private static void ChunkOperation_BatchProcessing()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("1. Chunk - Batch Processing (Process records in batches of 3)");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         [
@@ -90,9 +89,8 @@ public static class AdvancedLinqOperationsSamples
 
     private static void ChunkOperation_Pagination()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("2. Chunk Alternative - Pagination with Skip/Take");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         [
@@ -134,9 +132,8 @@ public static class AdvancedLinqOperationsSamples
 
     private static void ChunkOperation_ParallelProcessing()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("3. Chunk - Parallel Batch Processing Simulation");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         [
@@ -174,9 +171,8 @@ public static class AdvancedLinqOperationsSamples
 
     private static void JoinOperation_InnerJoin()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("4. Join - Inner Join (Employees with Departments)");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var employeesJson = """
         [
@@ -224,9 +220,8 @@ public static class AdvancedLinqOperationsSamples
 
     private static void JoinOperation_WithProjection()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("5. Join - With Filtering and Projection");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var ordersJson = """
         [
@@ -275,9 +270,8 @@ public static class AdvancedLinqOperationsSamples
 
     private static void JoinOperation_MultipleKeys()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("6. Join - Composite Key Join");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var salesJson = """
         [
@@ -318,7 +312,7 @@ public static class AdvancedLinqOperationsSamples
         Console.WriteLine($"  Sales Performance by Region & Quarter:");
         foreach (var result in results)
         {
-            var status = result.PercentOfTarget >= 100 ? "[OK] ACHIEVED" : "[X] BELOW";
+            var status = result.PercentOfTarget >= 100 ? "* ACHIEVED" : "[X] BELOW";
             Console.WriteLine($"    {result.Region} {result.Quarter}: ${result.Actual:N0} / ${result.Target:N0} ({result.PercentOfTarget:F1}%) {status}");
         }
 
@@ -331,9 +325,8 @@ public static class AdvancedLinqOperationsSamples
 
     private static void GroupJoinOperation_LeftJoin()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("7. GroupJoin - Left Join (All Departments with Employee Counts)");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var departmentsJson = """
         [
@@ -389,9 +382,8 @@ public static class AdvancedLinqOperationsSamples
 
     private static void GroupJoinOperation_Hierarchical()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("8. GroupJoin - Hierarchical Data (Categories with Products)");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var categoriesJson = """
         [
@@ -446,9 +438,8 @@ public static class AdvancedLinqOperationsSamples
 
     private static void GroupJoinOperation_WithAggregation()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("9. GroupJoin - With Aggregation (Customer Order Summary)");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var customersJson = """
         [
@@ -506,9 +497,8 @@ public static class AdvancedLinqOperationsSamples
 
     private static void GroupByAdvanced_ElementSelector()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("10. GroupBy - Element Selector with Aggregations");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         [
@@ -547,9 +537,8 @@ public static class AdvancedLinqOperationsSamples
 
     private static void GroupByAdvanced_NestedGrouping()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("11. GroupBy - Nested Grouping (City -> Department)");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         [
@@ -593,9 +582,8 @@ public static class AdvancedLinqOperationsSamples
 
     private static void GroupByAdvanced_Regrouping()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("12. GroupBy - Regrouping (Group -> Select -> Group Again)");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         [
@@ -638,9 +626,8 @@ public static class AdvancedLinqOperationsSamples
 
     private static void GroupByAdvanced_ComplexPipeline()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("13. GroupBy - Complex Pipeline with Multiple Operations");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         [

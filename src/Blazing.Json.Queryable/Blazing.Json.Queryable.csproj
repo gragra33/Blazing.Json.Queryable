@@ -21,7 +21,6 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageIcon>icon.png</PackageIcon>
     <PackageReleaseNotes>
 		V1.0.0 - 10 January, 2026 - Initial Release
 		- Custom LINQ provider for JSON with 60+ LINQ methods

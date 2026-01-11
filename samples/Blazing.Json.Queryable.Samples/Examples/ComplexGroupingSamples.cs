@@ -32,9 +32,8 @@ public static class ComplexGroupingSamples
 
     private static void GroupByWithAggregation()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("1. GroupBy with Aggregation (Average salary by department)");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         [
@@ -65,9 +64,8 @@ public static class ComplexGroupingSamples
 
     private static void GroupByMultipleKeys()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("2. GroupBy Multiple Keys (Department + Experience Level)");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         [
@@ -101,9 +99,8 @@ public static class ComplexGroupingSamples
 
     private static void GroupByWithProjection()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("3. GroupBy with Custom Projection");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         [
@@ -140,9 +137,8 @@ public static class ComplexGroupingSamples
 
     private static void GroupByWithCount()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("4. GroupBy with Count (Orders by status)");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         [
@@ -170,9 +166,8 @@ public static class ComplexGroupingSamples
 
     private static void GroupByWithElementSelector()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("5. GroupBy with Counting");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         [
@@ -203,9 +198,8 @@ public static class ComplexGroupingSamples
 
     private static void NestedGrouping()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("6. Nested GroupBy (Department -> Level -> Employees)");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         [
@@ -238,9 +232,8 @@ public static class ComplexGroupingSamples
 
     private static void GroupByDistinct()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("7. GroupBy + Distinct (Unique categories per customer)");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         [
@@ -272,9 +265,8 @@ public static class ComplexGroupingSamples
 
     private static void GroupByThenFilter()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("8. GroupBy Then Filter (Departments with >2 employees)");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         [

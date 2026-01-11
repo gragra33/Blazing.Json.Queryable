@@ -128,8 +128,8 @@ public static class Utf8Queries
         Console.WriteLine($"   FromUtf8:    {fromUtf8Ms:F2}ms ({(fromUtf8Ms / fromStringMs - 1) * 100:+0.0;-0.0}% vs Baseline)");
         Console.WriteLine($"   FromFile:    {fromFileMs:F2}ms ({(fromFileMs / fromStringMs - 1) * 100:+0.0;-0.0}% vs Baseline)");
         
-        Console.WriteLine("\n   [OK] FromUtf8 avoids UTF-16 to UTF-8 conversion overhead");
-        Console.WriteLine("   [OK] FromFile reads directly as UTF-8 bytes (best for file sources)");
+        Console.WriteLine("\n   * FromUtf8 avoids UTF-16 to UTF-8 conversion overhead");
+        Console.WriteLine("   * FromFile reads directly as UTF-8 bytes (best for file sources)");
         Console.WriteLine();
     }
     
@@ -164,8 +164,8 @@ public static class Utf8Queries
             Console.WriteLine($"   - {product.Name}: ${product.Price:F2}");
         }
         
-        Console.WriteLine("\n   [OK] Zero overhead - bytes used directly without conversion");
-        Console.WriteLine("   [OK] Ideal for API responses, file reads, network streams");
+        Console.WriteLine("\n   * Zero overhead - bytes used directly without conversion");
+        Console.WriteLine("   * Ideal for API responses, file reads, network streams");
         Console.WriteLine();
     }
 }

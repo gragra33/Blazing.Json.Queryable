@@ -41,6 +41,7 @@ public class Product
     public int Stock { get; set; }
     public bool InStock => Stock > 0;
     public DateTime? LastRestocked { get; set; }
+    public double Rating { get; set; }
 }
 
 /// <summary>

@@ -32,9 +32,8 @@ public static class JsonPathSamples
 
     private static void SimpleArrayPath()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("1. Simple Array Path ($.users[*])");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         {
@@ -59,9 +58,8 @@ public static class JsonPathSamples
 
     private static void NestedObjectPath()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("2. Nested Object Path ($.data.customers[*])");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         {
@@ -88,9 +86,8 @@ public static class JsonPathSamples
 
     private static void MultiLevelArrayWildcards()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("3. Multi-Level Array Wildcards ($.departments[*].employees[*])");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         {
@@ -126,9 +123,8 @@ public static class JsonPathSamples
 
     private static void DeepNestedArrays()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("4. Deep Nested Arrays ($.departments[*].teams[*].members[*])");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         {
@@ -179,9 +175,8 @@ public static class JsonPathSamples
 
     private static void RealWorldExample_Organization()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("5. Real-World: Organization Structure");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         {
@@ -241,9 +236,8 @@ public static class JsonPathSamples
 
     private static void RealWorldExample_ECommerce()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("6. Real-World: E-Commerce Orders");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         {
@@ -303,9 +297,8 @@ public static class JsonPathSamples
 
     private static void PathWithLinqFiltering()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("7. JSONPath + LINQ Filtering");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         {
@@ -343,9 +336,8 @@ public static class JsonPathSamples
 
     private static void ComplexNestedStructure()
     {
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
         Console.WriteLine("8. Complex Nested Structure (Blog Posts with Comments)");
-        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine("───────────────────────────────────────────────────────────────");
 
         var json = """
         {

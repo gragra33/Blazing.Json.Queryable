@@ -80,10 +80,10 @@ public static class AsyncQueries
         }
         catch (OperationCanceledException)
         {
-            Console.WriteLine("   [OK] Operation cancelled gracefully");
+            Console.WriteLine("   * Operation cancelled gracefully");
         }
         
-        Console.WriteLine("   [OK] Cancellation token properly handled");
+        Console.WriteLine("   * Cancellation token properly handled");
         Console.WriteLine();
     }
     
@@ -115,7 +115,7 @@ public static class AsyncQueries
             Console.WriteLine($"   - {product.Name}: ${product.Price:F2} (Rating: {product.Rating})");
         }
         
-        Console.WriteLine("\n   [OK] Async predicates work with .NET 10 async LINQ");
+        Console.WriteLine("\n   * Async predicates work with .NET 10 async LINQ");
         Console.WriteLine();
     }
     
@@ -167,8 +167,8 @@ public static class AsyncQueries
         
         sw.Stop();
         
-        Console.WriteLine($"   [OK] Processed {matched:N0} records in {sw.ElapsedMilliseconds}ms");
-        Console.WriteLine($"   [OK] Async I/O allows non-blocking processing");
+        Console.WriteLine($"\n   * Processed {matched:N0} records in {sw.ElapsedMilliseconds:N0}ms");
+        Console.WriteLine("   * Async I/O allows non-blocking processing");
         Console.WriteLine();
     }
     
@@ -196,10 +196,10 @@ public static class AsyncQueries
         var results = await Task.WhenAll(tasks);
         var totalRevenue = results.Sum();
         
-        Console.WriteLine($"   Processed {tasks.Count} delivered orders in parallel");
-        Console.WriteLine($"   Total revenue: ${totalRevenue:F2}");
-        Console.WriteLine("\n   [OK] Async enumeration enables parallel processing");
-        Console.WriteLine("   [OK] Non-blocking I/O improves throughput");
+        Console.WriteLine($"   Processed {tasks.Count:N0} delivered orders in parallel");
+        Console.WriteLine($"   Total revenue: ${totalRevenue:N2}");
+        Console.WriteLine("\n   * Async enumeration enables parallel processing");
+        Console.WriteLine("   * Non-blocking I/O improves throughput");
         Console.WriteLine();
     }
     

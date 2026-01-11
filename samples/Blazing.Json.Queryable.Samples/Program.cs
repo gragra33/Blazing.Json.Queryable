@@ -24,15 +24,16 @@ while (true)
     Console.WriteLine("  4. Async Queries (.NET 10 async LINQ support)");
     Console.WriteLine("  5. Custom Converters (JsonSerializerOptions)");
     Console.WriteLine("  6. Advanced Scenarios (Complex queries, error handling)");
-    Console.WriteLine("  7. Large Dataset Samples (100K-1M records, memory savings)");
-    Console.WriteLine("  8. Complex GroupBy Operations (Aggregations, nested grouping)");
-    Console.WriteLine("  9. JSONPath Filtering (Multi-level array wildcards)");
-    Console.WriteLine(" 10. Advanced LINQ Operations (Chunk, Join, GroupJoin, GroupBy)");
-    Console.WriteLine(" 11. Performance Comparisons (Benchmarks)");
-    Console.WriteLine(" 12. Run All Examples");
+    Console.WriteLine("  7. Large Dataset Samples (100K-1M records, in-memory streaming)");
+    Console.WriteLine("  8. Large Dataset File Streaming (True I/O streaming benefits)");
+    Console.WriteLine("  9. Complex GroupBy Operations (Aggregations, nested grouping)");
+    Console.WriteLine(" 10. JSONPath Filtering (Multi-level array wildcards)");
+    Console.WriteLine(" 11. Advanced LINQ Operations (Chunk, Join, GroupJoin, GroupBy)");
+    Console.WriteLine(" 12. Performance Comparisons (Benchmarks)");
+    Console.WriteLine(" 13. Run All Examples");
     Console.WriteLine("  0. Exit");
     Console.WriteLine();
-    Console.Write("Select an option (0-12): ");
+    Console.Write("Select an option (0-13): ");
     
     var input = Console.ReadLine();
     Console.WriteLine();
@@ -70,22 +71,26 @@ while (true)
                 break;
                 
             case "8":
-                ComplexGroupingSamples.RunAll();
+                await LargeDatasetFileStreamingSamples.RunAllAsync();
                 break;
                 
             case "9":
-                JsonPathSamples.RunAll();
+                ComplexGroupingSamples.RunAll();
                 break;
                 
             case "10":
-                AdvancedLinqOperationsSamples.RunAll();
+                JsonPathSamples.RunAll();
                 break;
                 
             case "11":
-                await PerformanceComparison.RunAllAsync();
+                AdvancedLinqOperationsSamples.RunAll();
                 break;
                 
             case "12":
+                await PerformanceComparison.RunAllAsync();
+                break;
+                
+            case "13":
                 Console.WriteLine("=================================================================");
                 Console.WriteLine("RUNNING ALL EXAMPLES");
                 Console.WriteLine("=================================================================");
@@ -98,6 +103,7 @@ while (true)
                 CustomConverters.RunAll();
                 await AdvancedScenarios.RunAllAsync();
                 await LargeDatasetSamples.RunAllAsync();
+                await LargeDatasetFileStreamingSamples.RunAllAsync();
                 ComplexGroupingSamples.RunAll();
                 JsonPathSamples.RunAll();
                 AdvancedLinqOperationsSamples.RunAll();
@@ -115,7 +121,7 @@ while (true)
                 return;
                 
             default:
-                Console.WriteLine("Invalid option. Please select 0-12.");
+                Console.WriteLine("Invalid option. Please select 0-13.");
                 Console.WriteLine();
                 break;
         }
@@ -130,6 +136,6 @@ while (true)
     }
     
     Console.WriteLine("Press any key to continue...");
-    Console.ReadKey();
+    Console.ReadLine();
     Console.Clear();
 }
