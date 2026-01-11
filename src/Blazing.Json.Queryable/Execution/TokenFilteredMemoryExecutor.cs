@@ -5,7 +5,8 @@ using Blazing.Json.Queryable.Core;
 namespace Blazing.Json.Queryable.Execution;
 
 /// <summary>
-/// Executes queries against in-memory JSON (string or UTF-8 bytes) using token filtering.
+/// Executes queries against in-memory JSON (string or UTF-8 bytes) with JSONPath filtering.
+/// Supports both simple path navigation and RFC 9535 compliant JSONPath queries.
 /// Converts memory source to stream, then delegates to TokenFilteredStreamExecutor.
 /// </summary>
 public sealed class TokenFilteredMemoryExecutor : IQueryExecutor
@@ -18,7 +19,7 @@ public sealed class TokenFilteredMemoryExecutor : IQueryExecutor
     /// Initializes a new instance of TokenFilteredMemoryExecutor.
     /// </summary>
     /// <param name="utf8Json">UTF-8 encoded JSON bytes.</param>
-    /// <param name="jsonPath">JSONPath expression for token filtering.</param>
+    /// <param name="jsonPath">JSONPath expression (supports RFC 9535 syntax).</param>
     /// <param name="options">JSON serializer options.</param>
     public TokenFilteredMemoryExecutor(
         ReadOnlyMemory<byte> utf8Json,

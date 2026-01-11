@@ -205,6 +205,7 @@ public sealed class QueryTranslator
             Core.LinqMethodNames.Select => CreateSelectStep(node),
             Core.LinqMethodNames.SelectMany => CreateSelectManyStep(node),
             Core.LinqMethodNames.GroupBy => CreateGroupByStep(node),
+            Core.LinqMethodNames.Join or Core.LinqMethodNames.GroupJoin => CreateJoinStep(node),
             Core.LinqMethodNames.OfType => CreateOfTypeStep(node),
             Core.LinqMethodNames.OrderBy or Core.LinqMethodNames.OrderByDescending => CreateOrderByStep(node, node.Method.Name == Core.LinqMethodNames.OrderByDescending),
             Core.LinqMethodNames.ThenBy or Core.LinqMethodNames.ThenByDescending => CreateThenByStep(node, node.Method.Name == Core.LinqMethodNames.ThenByDescending),
@@ -225,6 +226,42 @@ public sealed class QueryTranslator
                 => CreateSequenceOperationStep(node),
             Core.LinqMethodNames.DefaultIfEmpty => CreateDefaultIfEmptyStep(node),
             _ => null
+        };
+    }
+
+    /// <summary>
+    /// Creates a Join or GroupJoin execution step.
+    /// </summary>
+    /// <param name="node">The method call expression node.</param>
+    /// <returns>The created <see cref="Core.ExecutionStep"/>.</returns>
+    private static Core.ExecutionStep CreateJoinStep(MethodCallExpression node)
+    {
+        // Join/GroupJoin arguments: source, inner, outerKeySelector, innerKeySelector, resultSelector, [comparer]
+        var innerSequence = GetConstantValue(node.Arguments[1]);
+        var outerKeySelector = GetLambdaArgument(node, 2)?.Compile();
+        var innerKeySelector = GetLambdaArgument(node, 3)?.Compile();
+        var resultSelector = GetLambdaArgument(node, 4)?.Compile();
+        object? comparer = node.Arguments.Count >= 6 ? GetConstantValue(node.Arguments[5]) : null;
+        
+        // Determine result type from the result selector
+        var resultType = GetLambdaArgument(node, 4)?.ReturnType ?? GetElementTypeFromExpression(node);
+        
+        // Package all join data together
+        var joinData = new JoinData
+        {
+            IsGroupJoin = node.Method.Name == Core.LinqMethodNames.GroupJoin,
+            InnerSequence = innerSequence,
+            OuterKeySelector = outerKeySelector,
+            InnerKeySelector = innerKeySelector,
+            ResultSelector = resultSelector,
+            KeyComparer = comparer
+        };
+        
+        return new Core.ExecutionStep
+        {
+            OperationType = Core.OperationType.Join,
+            Data = joinData,
+            ResultType = resultType
         };
     }
 
@@ -691,6 +728,30 @@ public sealed class QueryTranslator
         /// <summary>Zip result selector function.</summary>
         public Delegate? ZipSelector { get; set; }
     }
+
+    /// <summary>
+    /// Helper class to track operation data for join operations.
+    /// </summary>
+    public sealed class JoinData
+    {
+        /// <summary>Indicates if this is a GroupJoin (true) or Join (false).</summary>
+        public bool IsGroupJoin { get; set; }
+        
+        /// <summary>Inner sequence to join with.</summary>
+        public object? InnerSequence { get; set; }
+        
+        /// <summary>Outer key selector function.</summary>
+        public Delegate? OuterKeySelector { get; set; }
+        
+        /// <summary>Inner key selector function.</summary>
+        public Delegate? InnerKeySelector { get; set; }
+        
+        /// <summary>Result selector function.</summary>
+        public Delegate? ResultSelector { get; set; }
+        
+        /// <summary>Optional key comparer.</summary>
+        public object? KeyComparer { get; set; }
+    }
     
     /// <summary>
     /// Helper visitor to extract Skip and Take values from an expression tree.
@@ -819,6 +880,31 @@ public sealed class QueryTranslator
                 return;
             }
 
+            // Check if OrderBy comes after Join
+            // Join changes the result type, so OrderBy must work on the new type via ExecutionSteps
+            int joinIndex = -1;
+            int orderByIndex = -1;
+            
+            for (int i = 0; i < operations.Count; i++)
+            {
+                if (operations[i] is Core.LinqMethodNames.Join or Core.LinqMethodNames.GroupJoin)
+                {
+                    if (joinIndex == -1) joinIndex = i;
+                }
+                else if (operations[i] is Core.LinqMethodNames.OrderBy or Core.LinqMethodNames.OrderByDescending or 
+                                    Core.LinqMethodNames.ThenBy or Core.LinqMethodNames.ThenByDescending)
+                {
+                    if (orderByIndex == -1) orderByIndex = i;
+                }
+            }
+            
+            // If OrderBy comes before Join in the list (after Join in the query)
+            if (orderByIndex >= 0 && joinIndex >= 0 && orderByIndex < joinIndex)
+            {
+                HasOperationsAfterProjection = true;
+                return;
+            }
+
             // Check if there's a projection followed by other operations
             int projectionIndex = -1;
             for (int i = 0; i < operations.Count; i++)
@@ -838,11 +924,11 @@ public sealed class QueryTranslator
                 for (int i = 0; i < projectionIndex; i++)
                 {
                     if (operations[i] is Core.LinqMethodNames.Distinct or Core.LinqMethodNames.DistinctBy or 
-                                        Core.LinqMethodNames.Union or Core.LinqMethodNames.UnionBy or 
-                                        Core.LinqMethodNames.Intersect or Core.LinqMethodNames.IntersectBy or 
-                                        Core.LinqMethodNames.Except or Core.LinqMethodNames.ExceptBy or
-                                        Core.LinqMethodNames.TakeLast or Core.LinqMethodNames.SkipLast or 
-                                        Core.LinqMethodNames.TakeWhile or Core.LinqMethodNames.SkipWhile)
+                                    Core.LinqMethodNames.Union or Core.LinqMethodNames.UnionBy or 
+                                    Core.LinqMethodNames.Intersect or Core.LinqMethodNames.IntersectBy or 
+                                    Core.LinqMethodNames.Except or Core.LinqMethodNames.ExceptBy or
+                                    Core.LinqMethodNames.TakeLast or Core.LinqMethodNames.SkipLast or 
+                                    Core.LinqMethodNames.TakeWhile or Core.LinqMethodNames.SkipWhile)
                     {
                         HasOperationsAfterProjection = true;
                         return;
@@ -852,17 +938,17 @@ public sealed class QueryTranslator
 
             // NEW: Check if TakeWhile/SkipWhile comes after OrderBy
             // This requires ordered execution because the legacy path applies partitioning before ordering
-            int orderByIndex = -1;
+            int orderByIndex2 = -1;
             int partitioningIndex = -1;
             
             for (int i = 0; i < operations.Count; i++)
             {
                 if (operations[i] is Core.LinqMethodNames.OrderBy or Core.LinqMethodNames.OrderByDescending or 
-                                    Core.LinqMethodNames.ThenBy or Core.LinqMethodNames.ThenByDescending)
+                                Core.LinqMethodNames.ThenBy or Core.LinqMethodNames.ThenByDescending)
                 {
-                    if (orderByIndex == -1) // Record first OrderBy
+                    if (orderByIndex2 == -1) // Record first OrderBy
                     {
-                        orderByIndex = i;
+                        orderByIndex2 = i;
                     }
                 }
                 else if (operations[i] is Core.LinqMethodNames.TakeWhile or Core.LinqMethodNames.SkipWhile)
@@ -875,7 +961,7 @@ public sealed class QueryTranslator
             }
 
             // If partitioning comes before OrderBy in the list (after OrderBy in the query)
-            if (partitioningIndex >= 0 && orderByIndex >= 0 && partitioningIndex < orderByIndex)
+            if (partitioningIndex >= 0 && orderByIndex2 >= 0 && partitioningIndex < orderByIndex2)
             {
                 HasOperationsAfterProjection = true;
             }
