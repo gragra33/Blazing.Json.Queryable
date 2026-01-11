@@ -45,16 +45,16 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
     
-    <!-- Symbol Package (.snupkg) Support -->
+    <!-- Symbol Package Settings - CRITICAL for snupkg generation -->
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <!-- Portable PDB is required for snupkg symbol packages -->
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <!-- Embed sources in PDB for SourceLink debugging -->
     <EmbedAllSources>true</EmbedAllSources>
-    <PublishRepositoryUrl Condition="'$(CI)' == 'true'">true</PublishRepositoryUrl>
-    <DebugType>embedded</DebugType>
-    
-    <!-- Deterministic builds for reproducibility -->
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
-    <Deterministic>true</Deterministic>
   </PropertyGroup>
 
   <ItemGroup>
