@@ -30,11 +30,12 @@ while (true)
     Console.WriteLine(" 10. JSONPath Filtering (Multi-level array wildcards)");
     Console.WriteLine(" 11. Advanced JSONPath (RFC 9535: Filters, Functions, Slicing)");
     Console.WriteLine(" 12. Advanced LINQ Operations (Chunk, Join, GroupJoin, GroupBy)");
-    Console.WriteLine(" 13. Performance Comparisons (Benchmarks)");
-    Console.WriteLine(" 14. Run All Examples");
+    Console.WriteLine(" 13. Query Syntax Examples (SQL-like declarative queries)");
+    Console.WriteLine(" 14. Performance Comparisons (Benchmarks)");
+    Console.WriteLine(" 15. Run All Examples");
     Console.WriteLine("  0. Exit");
     Console.WriteLine();
-    Console.Write("Select an option (0-14): ");
+    Console.Write("Select an option (0-15): ");
     
     var input = Console.ReadLine();
     Console.WriteLine();
@@ -92,10 +93,14 @@ while (true)
                 break;
                 
             case "13":
-                await PerformanceComparison.RunAllAsync();
+                QuerySyntaxSamples.RunAll();
                 break;
                 
             case "14":
+                await PerformanceComparison.RunAllAsync();
+                break;
+                
+            case "15":
                 Console.WriteLine("=================================================================");
                 Console.WriteLine("RUNNING ALL EXAMPLES");
                 Console.WriteLine("=================================================================");
@@ -113,6 +118,7 @@ while (true)
                 JsonPathSamples.RunAll();
                 AdvancedJsonPathSamples.RunAll();
                 AdvancedLinqOperationsSamples.RunAll();
+                QuerySyntaxSamples.RunAll();
                 await PerformanceComparison.RunAllAsync();
                 
                 Console.WriteLine("=================================================================");
@@ -127,7 +133,7 @@ while (true)
                 return;
                 
             default:
-                Console.WriteLine("Invalid option. Please select 0-14.");
+                Console.WriteLine("Invalid option. Please select 0-15.");
                 Console.WriteLine();
                 break;
         }
@@ -142,6 +148,6 @@ while (true)
     }
     
     Console.WriteLine("Press any key to continue...");
-    Console.ReadLine();
+    Console.ReadKey();
     Console.Clear();
 }

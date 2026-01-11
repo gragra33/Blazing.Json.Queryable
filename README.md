@@ -20,6 +20,7 @@
     - [Streaming Queries](#streaming-queries)
     - [Advanced Streaming with .NET 10 Async LINQ](#advanced-streaming-with.net-10-async-linq)
     - [UTF-8 Direct Processing](#utf-8-direct-processing)
+    - [Query Syntax (Query Expression Syntax)](#query-syntax-query-expression-syntax)
   - [Supported LINQ Methods](#supported-linq-methods)
     - [Filtering Operations](#filtering-operations)
     - [Projection Operations](#projection-operations)
@@ -331,6 +332,165 @@ await foreach (var person in JsonQueryable<Person>.FromStream(utf8Stream)
 }
 ```
 
+### Query Syntax (Query Expression Syntax)
+
+Blazing.Json.Queryable supports both **method syntax** (fluent) and **query syntax** (query expression) for LINQ queries. Query syntax provides a declarative, SQL-like alternative that can be more readable for complex queries.
+
+> [!TIP]
+> **📚 Learn More About LINQ Query Syntax:**
+> - [Query expression basics (Microsoft Docs)](https://learn.microsoft.com/en-us/dotnet/csharp/linq/get-started/query-expression-basics)
+> - [Query syntax vs method syntax (Microsoft Docs)](https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/linq/query-syntax-and-method-syntax-in-linq)
+
+#### Method Syntax vs Query Syntax
+
+```csharp
+var json = """[{"Name":"Alice","Age":30},{"Name":"Bob","Age":25},{"Name":"Charlie","Age":35}]""";
+
+// METHOD SYNTAX (fluent) - Chain methods
+var methodResults = JsonQueryable<Person>.FromString(json)
+    .Where(p => p.Age > 25)
+    .OrderBy(p => p.Name)
+    .Select(p => new { p.Name, p.Age })
+    .ToList();
+
+// QUERY SYNTAX (declarative) - SQL-like keywords
+var queryResults = (from p in JsonQueryable<Person>.FromString(json)
+                    where p.Age > 25
+                    orderby p.Name
+                    select new { p.Name, p.Age })
+                   .ToList();
+
+// Both produce identical results!
+```
+
+#### Query Syntax with All Library Features
+
+**1. FromString - Basic Query Syntax:**
+```csharp
+var results = (from p in JsonQueryable<Person>.FromString(json)
+               where p.Age > 25 && p.IsActive
+               select new { p.Name, p.City })
+              .ToList();
+```
+
+**2. FromUtf8 - Zero-allocation UTF-8 Processing:**
+```csharp
+byte[] utf8Bytes = Encoding.UTF8.GetBytes(jsonString);
+
+var results = (from p in JsonQueryable<Person>.FromUtf8(utf8Bytes)
+               where p.Age >= 30
+               orderby p.Name
+               select p)
+              .ToList();
+```
+
+**3. FromFile - Direct File Access:**
+```csharp
+var results = (from p in JsonQueryable<Person>.FromFile("data.json")
+               where p.IsActive
+               orderby p.Age descending
+               select new { p.Name, p.Age })
+              .Take(10)
+              .ToList();
+```
+
+**4. FromStream - Async Streaming:**
+```csharp
+await using var stream = File.OpenRead("data.json");
+
+await foreach (var person in (from p in JsonQueryable<Person>.FromStream(stream)
+                               where p.Age > 25
+                               orderby p.Name
+                               select p)
+                              .Take(10)
+                              .AsAsyncEnumerable())
+{
+    Console.WriteLine($"{person.Name}, {person.Age}");
+}
+```
+
+**5. Multi-level Sorting:**
+```csharp
+var results = (from p in JsonQueryable<Person>.FromString(json)
+               orderby p.City, p.Age descending, p.Name
+               select p)
+              .ToList();
+```
+
+**6. Grouping with Aggregations:**
+```csharp
+var results = (from p in JsonQueryable<Person>.FromString(json)
+               group p by p.City into cityGroup
+               select new
+               {
+                   City = cityGroup.Key,
+                   Count = cityGroup.Count(),
+                   AvgAge = cityGroup.Average(p => p.Age),
+                   MinAge = cityGroup.Min(p => p.Age),
+                   MaxAge = cityGroup.Max(p => p.Age)
+               })
+              .ToList();
+```
+
+**7. JSONPath Pre-filtering with Query Syntax:**
+```csharp
+// Combine RFC 9535 JSONPath filters with query syntax
+var results = (from p in JsonQueryable<Product>
+                   .FromString(json, "$[?@.price < 100 && @.stock > 0]")
+               group p by p.Category into catGroup
+               orderby catGroup.Key
+               select new
+               {
+                   Category = catGroup.Key,
+                   Count = catGroup.Count(),
+                   AvgPrice = catGroup.Average(p => p.Price),
+                   Products = catGroup.Select(p => p.Name).ToList()
+               })
+              .ToList();
+```
+
+**8. Complex Real-World Query:**
+```csharp
+// Employee department analysis with filtering, grouping, and sorting
+var results = (from e in JsonQueryable<Employee>.FromString(json)
+               where e.IsActive && e.Salary > 60000
+               group e by e.Department into deptGroup
+               where deptGroup.Count() > 1
+               orderby deptGroup.Average(e => e.Salary) descending
+               select new
+               {
+                   Department = deptGroup.Key,
+                   Count = deptGroup.Count(),
+                   AvgSalary = deptGroup.Average(e => e.Salary),
+                   TopEarner = deptGroup.OrderByDescending(e => e.Salary).First().Name
+               })
+              .ToList();
+```
+
+#### When to Use Query Syntax
+
+Both query syntax and method syntax are equally powerful and produce identical compiled code. The choice between them is purely a matter of readability and personal/team preference. Here's a side-by-side comparison to help you decide:
+
+| **Use Query Syntax When:** | **Use Method Syntax When:** |
+|----------------------------|----------------------------|
+| Complex queries with joins and grouping (more SQL-like readability) | Simple filtering and projection |
+| Multiple `from` clauses (SelectMany scenarios) | Chaining many operations (more fluent) |
+| Team prefers declarative style | Using methods not available in query syntax (Take, Skip, Distinct, etc.) |
+| Using `let` keyword for intermediate results | Personal/team preference for fluent style |
+
+> [!NOTE]
+> Both syntaxes are fully supported and produce identical expression trees. You can even mix them:
+> ```csharp
+> var mixed = (from p in JsonQueryable<Person>.FromString(json)
+>              where p.Age > 25
+>              select p)
+>             .Take(10)  // Method syntax at the end
+>             .ToList();
+> ```
+
+> [!TIP]
+> **See Full Examples:** Check out `samples/Blazing.Json.Queryable.Samples/Examples/QuerySyntaxSamples.cs` for comprehensive demonstrations of query syntax with all library features including FromUtf8, FromFile, FromStream, and JSONPath integration.
+
 ## Supported LINQ Methods
 
 ### Filtering Operations
@@ -508,7 +668,8 @@ var optimized = JsonQueryable<Product>
 | **Child** | `.property` or `['property']` | `$.data.users` | Access nested property |
 | **Wildcard** | `*` or `[*]` | `$.users[*]` | All array elements |
 | **Filter** | `[?expression]` | `$[?@.age > 25]` | Filter by condition |
-| **Slice** | `[start:end:step]` | `$[2:10:2]` | Array slice with step |
+| **Slice** | `[start:end]` | `$[2:10]` | Array slice |
+| **Step** | `:step` | `$[::2]` | Every 2nd element |
 | **Current** | `@` | `@.price < 100` | Current element in filter |
 | **Comparison** | `==`, `!=`, `<`, `<=`, `>`, `>=` | `@.price >= 50` | Comparison operators |
 | **Logical** | `&&`, `\|\|`, `!` | `@.age > 18 && @.active` | Logical operators |
@@ -801,7 +962,8 @@ All samples are located in the `samples/Blazing.Json.Queryable.Samples` director
 10. **JsonPathSamples.cs** - Simple JSONPath navigation for nested structures
 11. **AdvancedJsonPathSamples.cs** - RFC 9535 filters, functions, slicing, and real-world scenarios
 12. **AdvancedLinqOperationsSamples.cs** - Advanced operations (Chunk, Zip, DistinctBy, ExceptBy, IntersectBy, UnionBy)
-13. **PerformanceComparison.cs** - Benchmarks comparing traditional vs streaming approaches
+13. **QuerySyntaxSamples.cs** - Query expression syntax (SQL-like declarative LINQ queries)
+14. **PerformanceComparison.cs** - Benchmarks comparing traditional vs streaming approaches
 
 ### Benchmark Suites
 
