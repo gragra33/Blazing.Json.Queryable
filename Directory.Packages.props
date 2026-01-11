@@ -2,14 +2,12 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
-  
   <ItemGroup>
-	  <PackageVersion Include="Utf8JsonAsyncStreamReader" Version="2.1.0" />
-
-	  <!-- SourceLink for NuGet Symbol Package Support -->
-	  <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
-
-	  <!-- Test Project Dependencies -->
+    <PackageVersion Include="Blazing.Json.JSONPath" Version="1.1.0" />
+    <PackageVersion Include="Utf8JsonAsyncStreamReader" Version="2.1.0" />
+    <!-- SourceLink for NuGet Symbol Package Support -->
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
+    <!-- Test Project Dependencies -->
     <PackageVersion Include="BenchmarkDotNet" Version="0.14.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />

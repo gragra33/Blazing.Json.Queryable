@@ -2,12 +2,15 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Blazing.Json.Queryable.Core;
 using System.Text.Json.Stream;
+using Blazing.Json.JSONPath.Parser;
+using Blazing.Json.JSONPath.Evaluator;
+using Blazing.Json.JSONPath.Utilities;
 
 namespace Blazing.Json.Queryable.Execution;
 
 /// <summary>
-/// Executes queries against JSON streams using token-based filtering via Utf8JsonAsyncStreamReader.
-/// Enables extraction of specific objects from complex, nested JSON structures.
+/// Executes queries against JSON streams with JSONPath filtering support.
+/// Supports both simple path navigation and RFC 9535 compliant JSONPath queries.
 /// Extended to support all LINQ operations with automatic materialization when needed.
 /// </summary>
 public sealed class TokenFilteredStreamExecutor : IQueryExecutor
@@ -21,7 +24,7 @@ public sealed class TokenFilteredStreamExecutor : IQueryExecutor
     /// Initializes a new instance of <see cref="TokenFilteredStreamExecutor"/>.
     /// </summary>
     /// <param name="stream">The JSON stream to read from.</param>
-    /// <param name="jsonPath">JSONPath expression for token filtering.</param>
+    /// <param name="jsonPath">JSONPath expression (supports RFC 9535 syntax).</param>
     /// <param name="options">JSON serializer options. If null, uses case-insensitive property names.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="stream"/> or <paramref name="jsonPath"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown if <paramref name="stream"/> is not readable.</exception>
@@ -123,6 +126,7 @@ public sealed class TokenFilteredStreamExecutor : IQueryExecutor
 
     /// <summary>
     /// Executes the query asynchronously with the specified source and result types.
+    /// Automatically selects between RFC 9535 JSONPath and simple navigation.
     /// </summary>
     /// <typeparam name="TSource">The type of the source elements.</typeparam>
     /// <typeparam name="TResult">The type of the result elements.</typeparam>
@@ -145,7 +149,128 @@ public sealed class TokenFilteredStreamExecutor : IQueryExecutor
             yield break;
         }
 
-        // Streaming path with JSONPath filtering
+        // Check if this is an RFC 9535 expression using JsonPathHelper from Blazing.Json.JSONPath
+        if (JsonPathHelper.HasFeatures(_jsonPath.AsSpan()))
+        {
+            // Use Blazing.Json.JSONPath for RFC 9535 queries
+            await foreach (var item in ExecuteWithJsonPathAsync<TSource, TResult>(plan, predicates, cancellationToken).ConfigureAwait(false))
+            {
+                yield return item;
+            }
+            yield break;
+        }
+
+        // Use simple navigation for basic paths
+        await foreach (var item in ExecuteWithSimpleNavigationAsync<TSource, TResult>(plan, predicates, cancellationToken).ConfigureAwait(false))
+        {
+            yield return item;
+        }
+    }
+
+    /// <summary>
+    /// Executes query using RFC 9535 JSONPath evaluation.
+    /// </summary>
+    private async IAsyncEnumerable<TResult> ExecuteWithJsonPathAsync<TSource, TResult>(
+        QueryExecutionPlan plan,
+        List<Func<TSource, bool>>? predicates,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        int skip = plan.Skip ?? 0;
+        int? take = plan.Take;
+
+        // Load JSON into JsonDocument for RFC 9535 evaluation
+        if (_stream.CanSeek)
+        {
+            _stream.Position = 0;
+        }
+
+        using var doc = await JsonDocument.ParseAsync(_stream, cancellationToken: cancellationToken);
+        
+        // Parse and evaluate RFC 9535 JSONPath
+        var query = JsonPathParser.Parse(_jsonPath);
+        var evaluator = new JsonPathEvaluator();
+        var results = evaluator.Evaluate(query, doc.RootElement);
+
+        foreach (var result in results)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Deserialize matched element
+            TSource? item;
+            try
+            {
+                item = JsonSerializer.Deserialize<TSource>(
+                    result.Value.GetRawText(),
+                    _options
+                );
+            }
+            catch (JsonException)
+            {
+                continue;
+            }
+
+            if (item is null)
+                continue;
+
+            // Apply type filtering (OfType)
+            if (plan.TypeFilter is not null && item.GetType() != plan.TypeFilter)
+                continue;
+
+            // Apply additional LINQ WHERE predicates
+            bool matches = true;
+            if (predicates is not null)
+            {
+                foreach (var predicate in predicates)
+                {
+                    if (!predicate(item))
+                    {
+                        matches = false;
+                        break;
+                    }
+                }
+            }
+
+            if (!matches)
+                continue;
+
+            // Apply SKIP
+            if (skip > 0)
+            {
+                skip--;
+                continue;
+            }
+
+            // Apply projection
+            TResult resultItem;
+            if (plan.ProjectionSelector is not null && plan.ResultType != typeof(TSource))
+            {
+                var projector = (Func<TSource, TResult>)plan.ProjectionSelector;
+                resultItem = projector(item);
+            }
+            else
+            {
+                resultItem = (TResult)(object)item!;
+            }
+
+            yield return resultItem;
+
+            // EARLY TERMINATION
+            if (take.HasValue && --take <= 0)
+            {
+                yield break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Executes query using simple path navigation (existing logic).
+    /// </summary>
+    private async IAsyncEnumerable<TResult> ExecuteWithSimpleNavigationAsync<TSource, TResult>(
+        QueryExecutionPlan plan,
+        List<Func<TSource, bool>>? predicates,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        // Streaming path with simple navigation
         using var reader = new Utf8JsonAsyncStreamReader(_stream, leaveOpen: true);
 
         int skip = plan.Skip ?? 0;
@@ -159,19 +284,13 @@ public sealed class TokenFilteredStreamExecutor : IQueryExecutor
         
         if (!navigated)
         {
-            // Navigation failed - this might be a multi-array wildcard path
-            // Fall back to materialization with recursive collection
-            
-            // Reset stream if possible
+            // Navigation failed - fall back to materialization
             if (_stream.CanSeek)
             {
                 _stream.Position = 0;
             }
             
-            // Use materialization to handle multi-array wildcards
             var items = await MaterializeAllAsync<TSource>(cancellationToken);
-            
-            // Apply plan operations to materialized items
             var results = _operations.ExecuteQuery<TSource, TResult>(items, plan);
             
             foreach (var item in results)
@@ -201,7 +320,6 @@ public sealed class TokenFilteredStreamExecutor : IQueryExecutor
                 }
                 catch (JsonException)
                 {
-                    // Skip tokens that don't deserialize to TSource
                     continue;
                 }
 
@@ -432,6 +550,44 @@ public sealed class TokenFilteredStreamExecutor : IQueryExecutor
         if (_stream.CanSeek)
         {
             _stream.Position = 0;
+        }
+
+        // Check if this is an RFC 9535 expression using JsonPathHelper
+        if (JsonPathHelper.HasFeatures(_jsonPath.AsSpan()))
+        {
+            // Use Blazing.Json.JSONPath for RFC 9535 queries
+            using var doc = await JsonDocument.ParseAsync(_stream, cancellationToken: cancellationToken);
+            
+            // Parse and evaluate RFC 9535 JSONPath
+            var query = JsonPathParser.Parse(_jsonPath);
+            var evaluator = new JsonPathEvaluator();
+            var jsonResults = evaluator.Evaluate(query, doc.RootElement);
+
+            foreach (var result in jsonResults)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Deserialize matched element
+                T? item;
+                try
+                {
+                    item = JsonSerializer.Deserialize<T>(
+                        result.Value.GetRawText(),
+                        _options
+                    );
+                }
+                catch (JsonException)
+                {
+                    continue;
+                }
+
+                if (item is not null)
+                {
+                    results.Add(item);
+                }
+            }
+            
+            return results;
         }
         
         using var reader = new Utf8JsonAsyncStreamReader(_stream, leaveOpen: true);

@@ -722,19 +722,46 @@ internal sealed class QueryOperationExecutor
         var innerEnumerable = plan.InnerSequence as System.Collections.IEnumerable
             ?? throw new InvalidOperationException("Inner sequence must be enumerable");
 
+        // Determine if this is a Join or GroupJoin by inspecting the result selector's parameter types
+        // Both Join and GroupJoin have result selectors with 2 *logical* parameters:
+        //   Join:      Func<TOuter, TInner, TResult>
+        //   GroupJoin: Func<TOuter, IEnumerable<TInner>, TResult>
+        // 
+        // However, compiled lambdas may have a compiler-generated Closure parameter at index 0.
+        // We need to check if the second *logical* parameter (the inner sequence parameter) is IEnumerable<T>.
+        
+        var parameters = resultSelector.Method.GetParameters();
+        bool isGroupJoin = false;
+        
+        // Find the second logical parameter (skipping Closure if present)
+        // Compiled lambdas: [Closure, TOuter, TInner/IEnumerable<TInner>]
+        // We need to check the last parameter type
+        if (parameters.Length >= 2)
+        {
+            // The second logical parameter is either:
+            // - parameters[1] if no Closure (2 parameters total)
+            // - parameters[2] if Closure is present (3 parameters total)
+            var secondLogicalParam = parameters.Length == 2 ? parameters[1] : parameters[^1];
+            
+            // Check if it's IEnumerable<T> (GroupJoin) or a single element (Join)
+            isGroupJoin = secondLogicalParam.ParameterType.IsGenericType &&
+                         secondLogicalParam.ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>);
+        }
+
+        var methodName = isGroupJoin ? nameof(Enumerable.GroupJoin) : nameof(Enumerable.Join);
         var joinMethod = typeof(Enumerable).GetMethods()
-            .First(m => m.Name == (resultSelector.Method.GetParameters().Length == 2 ? nameof(Enumerable.Join) : nameof(Enumerable.GroupJoin)));
+            .First(m => m.Name == methodName && m.GetGenericArguments().Length == 4);
 
         var innerType = plan.InnerSequence.GetType().GetGenericArguments()[0];
         var keyType = outerKeySelector.Method.ReturnType;
 
         var typedJoinMethod = joinMethod.MakeGenericMethod(typeof(TSource), innerType, keyType, typeof(TResult));
 
-        var parameters = plan.KeyComparer is not null
+        var invokeParams = plan.KeyComparer is not null
             ? new[] { source, innerEnumerable, outerKeySelector, innerKeySelector, resultSelector, plan.KeyComparer }
             : [source, innerEnumerable, outerKeySelector, innerKeySelector, resultSelector];
 
-        return (IEnumerable<TResult>)typedJoinMethod.Invoke(null, parameters)!;
+        return (IEnumerable<TResult>)typedJoinMethod.Invoke(null, invokeParams)!;
     }
 
     #endregion
@@ -1043,8 +1070,10 @@ internal sealed class QueryOperationExecutor
         object query = source;
         Type currentType = typeof(TSource);
 
-        foreach (var step in plan.ExecutionSteps!)
+        for (int i = 0; i < plan.ExecutionSteps!.Count; i++)
         {
+            var step = plan.ExecutionSteps[i];
+            
             query = ExecuteStep(query, currentType, step, out var newType);
             currentType = newType ?? currentType;
         }
@@ -1087,6 +1116,9 @@ internal sealed class QueryOperationExecutor
             
             OperationType.GroupBy => UpdateTypeAndExecute(out newType, step.ResultType,
                 () => ExecuteGroupByStep(query, currentType, step)),
+            
+            OperationType.Join => UpdateTypeAndExecute(out newType, step.ResultType,
+                () => ExecuteJoinStep(query, currentType, step)),
             
             OperationType.OfType => UpdateTypeAndExecute(out newType, step.Data as Type,
                 () => ExecuteOfTypeStep(query, step)),
@@ -1424,6 +1456,45 @@ internal sealed class QueryOperationExecutor
         return defaultValue is not null
             ? defaultIfEmptyMethod.MakeGenericMethod(elementType).Invoke(null, [query, defaultValue])!
             : defaultIfEmptyMethod.MakeGenericMethod(elementType).Invoke(null, [query])!;
+    }
+
+    private static object ExecuteJoinStep(object query, Type sourceType, ExecutionStep step)
+    {
+        var joinData = step.Data as QueryTranslator.JoinData 
+                       ?? throw new InvalidOperationException("Join step missing data");
+
+        var outerKeySelector = joinData.OuterKeySelector!;
+        var innerKeySelector = joinData.InnerKeySelector!;
+        var resultSelector = joinData.ResultSelector!;
+        var innerEnumerable = joinData.InnerSequence as System.Collections.IEnumerable
+                              ?? throw new InvalidOperationException("Inner sequence must be enumerable");
+
+        // Determine if this is a Join or GroupJoin by inspecting result selector parameter types
+        var parameters = resultSelector.Method.GetParameters();
+        bool isGroupJoin = joinData.IsGroupJoin;
+        
+        // Double-check by inspecting parameter types (handles compiler-generated Closure parameter)
+        if (parameters.Length >= 2)
+        {
+            var secondLogicalParam = parameters.Length == 2 ? parameters[1] : parameters[^1];
+            isGroupJoin = secondLogicalParam.ParameterType.IsGenericType &&
+                         secondLogicalParam.ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>);
+        }
+
+        var methodName = isGroupJoin ? nameof(Enumerable.GroupJoin) : nameof(Enumerable.Join);
+        var joinMethod = typeof(Enumerable).GetMethods()
+            .First(m => m.Name == methodName && m.GetGenericArguments().Length == 4);
+
+        var innerType = joinData.InnerSequence!.GetType().GetGenericArguments()[0];
+        var keyType = outerKeySelector.Method.ReturnType;
+
+        var typedJoinMethod = joinMethod.MakeGenericMethod(sourceType, innerType, keyType, step.ResultType!);
+
+        var invokeParams = joinData.KeyComparer is not null
+            ? new[] { query, innerEnumerable, outerKeySelector, innerKeySelector, resultSelector, joinData.KeyComparer }
+            : [query, innerEnumerable, outerKeySelector, innerKeySelector, resultSelector];
+
+        return typedJoinMethod.Invoke(null, invokeParams)!;
     }
 
     #endregion

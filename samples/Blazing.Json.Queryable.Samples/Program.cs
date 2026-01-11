@@ -28,12 +28,13 @@ while (true)
     Console.WriteLine("  8. Large Dataset File Streaming (True I/O streaming benefits)");
     Console.WriteLine("  9. Complex GroupBy Operations (Aggregations, nested grouping)");
     Console.WriteLine(" 10. JSONPath Filtering (Multi-level array wildcards)");
-    Console.WriteLine(" 11. Advanced LINQ Operations (Chunk, Join, GroupJoin, GroupBy)");
-    Console.WriteLine(" 12. Performance Comparisons (Benchmarks)");
-    Console.WriteLine(" 13. Run All Examples");
+    Console.WriteLine(" 11. Advanced JSONPath (RFC 9535: Filters, Functions, Slicing)");
+    Console.WriteLine(" 12. Advanced LINQ Operations (Chunk, Join, GroupJoin, GroupBy)");
+    Console.WriteLine(" 13. Performance Comparisons (Benchmarks)");
+    Console.WriteLine(" 14. Run All Examples");
     Console.WriteLine("  0. Exit");
     Console.WriteLine();
-    Console.Write("Select an option (0-13): ");
+    Console.Write("Select an option (0-14): ");
     
     var input = Console.ReadLine();
     Console.WriteLine();
@@ -83,14 +84,18 @@ while (true)
                 break;
                 
             case "11":
-                AdvancedLinqOperationsSamples.RunAll();
+                AdvancedJsonPathSamples.RunAll();
                 break;
                 
             case "12":
-                await PerformanceComparison.RunAllAsync();
+                AdvancedLinqOperationsSamples.RunAll();
                 break;
                 
             case "13":
+                await PerformanceComparison.RunAllAsync();
+                break;
+                
+            case "14":
                 Console.WriteLine("=================================================================");
                 Console.WriteLine("RUNNING ALL EXAMPLES");
                 Console.WriteLine("=================================================================");
@@ -106,6 +111,7 @@ while (true)
                 await LargeDatasetFileStreamingSamples.RunAllAsync();
                 ComplexGroupingSamples.RunAll();
                 JsonPathSamples.RunAll();
+                AdvancedJsonPathSamples.RunAll();
                 AdvancedLinqOperationsSamples.RunAll();
                 await PerformanceComparison.RunAllAsync();
                 
@@ -121,7 +127,7 @@ while (true)
                 return;
                 
             default:
-                Console.WriteLine("Invalid option. Please select 0-13.");
+                Console.WriteLine("Invalid option. Please select 0-14.");
                 Console.WriteLine();
                 break;
         }

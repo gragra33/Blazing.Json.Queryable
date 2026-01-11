@@ -1,46 +1,74 @@
-﻿# Blazing.Json.Queryable
+# Blazing.Json.Queryable
 
 [![NuGet Version](https://img.shields.io/nuget/v/Blazing.Json.Queryable.svg)](https://www.nuget.org/packages/Blazing.Json.Queryable) [![NuGet Downloads](https://img.shields.io/nuget/dt/Blazing.Json.Queryable.svg)](https://www.nuget.org/packages/Blazing.Json.Queryable) [![.NET 10+](https://img.shields.io/badge/.NET-10%2B-512BD4)](https://dotnet.microsoft.com/download)
 
+<!-- TOC -->
 ## Table of Contents
 
-- [Overview](#overview)
-- [Key Features](#key-features)
-- [Why Choose Blazing.Json.Queryable?](#why-choose-blazingjsonqueryable)
-- [Getting Started](#getting-started)
-  - [Installation](#installation)
-  - [Requirements](#requirements)
-  - [Quick Start](#quick-start)
-- [Usage](#usage)
-  - [Basic Queries](#basic-queries)
-  - [Streaming Queries](#streaming-queries)
-  - [Advanced Streaming with .NET 10 Async LINQ](#advanced-streaming-with-net-10-async-linq)
-  - [UTF-8 Direct Processing](#utf-8-direct-processing)
-  - [JSONPath Queries](#jsonpath-queries)
-- [Supported LINQ Methods](#supported-linq-methods)
-  - [Filtering Operations](#filtering-operations)
-  - [Projection Operations](#projection-operations)
-  - [Ordering Operations](#ordering-operations)
-  - [Quantifier Operations](#quantifier-operations)
-  - [Element Access Operations](#element-access-operations)
-  - [Aggregation Operations](#aggregation-operations)
-  - [Set Operations](#set-operations)
-  - [Partitioning Operations](#partitioning-operations)
-  - [Grouping Operations](#grouping-operations)
-  - [Conversion Operations](#conversion-operations)
-  - [Sequence Operations](#sequence-operations)
-- [How It Works](#how-it-works)
-- [Performance Advantages](#performance-advantages)
-- [Samples](#samples)
-- [Give a ⭐](#give-a-)
-- [Support](#support)
-- [History](#history)
+  - [Overview](#overview)
+  - [Key Features](#key-features)
+  - [Why Choose Blazing.Json.Queryable?](#why-choose-blazing.json.queryable)
+    - [Performance Advantages Over Traditional JSON + LINQ](#performance-advantages-over-traditional-json-linq)
+    - [Key Advantages](#key-advantages)
+    - [When to Use Each Approach](#when-to-use-each-approach)
+  - [Getting Started](#getting-started)
+    - [Installation](#installation)
+    - [Requirements](#requirements)
+    - [Quick Start](#quick-start)
+  - [Usage](#usage)
+    - [Basic Queries](#basic-queries)
+    - [Streaming Queries](#streaming-queries)
+    - [Advanced Streaming with .NET 10 Async LINQ](#advanced-streaming-with.net-10-async-linq)
+    - [UTF-8 Direct Processing](#utf-8-direct-processing)
+  - [Supported LINQ Methods](#supported-linq-methods)
+    - [Filtering Operations](#filtering-operations)
+    - [Projection Operations](#projection-operations)
+    - [Ordering Operations](#ordering-operations)
+    - [Quantifier Operations](#quantifier-operations)
+    - [Element Access Operations](#element-access-operations)
+    - [Aggregation Operations](#aggregation-operations)
+    - [Set Operations](#set-operations)
+    - [Partitioning Operations](#partitioning-operations)
+    - [Grouping Operations](#grouping-operations)
+    - [Conversion Operations](#conversion-operations)
+    - [Sequence Operations](#sequence-operations)
+  - [JSONPath Support (RFC 9535)](#jsonpath-support-rfc-9535)
+    - [Overview](#overview-1)
+    - [Why Use JSONPath with Blazing.Json.Queryable?](#why-use-jsonpath-with-blazing.json.queryable)
+    - [JSONPath Syntax Quick Reference](#jsonpath-syntax-quick-reference)
+    - [Simple Path Navigation](#simple-path-navigation)
+    - [Filter Expressions](#filter-expressions)
+    - [Built-in Functions](#built-in-functions)
+    - [Array Slicing](#array-slicing)
+    - [Combining JSONPath with LINQ](#combining-jsonpath-with-linq)
+      - [Real-World Example: Department Workforce Analysis](#real-world-example-department-workforce-analysis)
+    - [Performance Best Practices](#performance-best-practices)
+    - [When to Use JSONPath vs LINQ Where](#when-to-use-jsonpath-vs-linq-where)
+    - [Learn More](#learn-more)
+  - [How It Works](#how-it-works)
+    - [Execution Flow Example](#execution-flow-example)
+  - [Performance Advantages](#performance-advantages)
+    - [Real-World Performance Comparison](#real-world-performance-comparison)
+    - [Key Performance Benefits](#key-performance-benefits)
+    - [When Performance Gains Are Largest](#when-performance-gains-are-largest)
+  - [Samples](#samples)
+    - [Sample Projects](#sample-projects)
+    - [Benchmark Suites](#benchmark-suites)
+    - [Running the Samples](#running-the-samples)
+    - [Running the Benchmarks](#running-the-benchmarks)
+  - [Give a ⭐](#give-a)
+  - [Support](#support)
+  - [History](#history)
+    - [V1.1.0 - 12 January, 2026](#v1.1.0-12-january-2026)
+    - [V1.0.0 - 11 January, 2026](#v1.0.0-11-january-2026)
+
+<!-- TOC -->
 
 ## Overview
 
 **Blazing.Json.Queryable** is a high-performance LINQ provider for JSON data that processes JSON directly without full deserialization. Unlike traditional approaches that load entire JSON files into memory and then apply LINQ queries, this library processes JSON as a stream, providing dramatic performance improvements and memory efficiency for medium to large JSON files.
 
-This custom JSON LINQ provider supports standard string, UTF-8, streaming, and advanced streaming JSONPath operations. Whether you're working with multi-megabyte API responses, large data exports, or log files, Blazing.Json.Queryable enables you to query JSON data efficiently with the familiar LINQ syntax you already know.
+This custom JSON LINQ provider supports standard string, UTF-8, streaming, and RFC 9535 compliant JSONPath operations powered by **[Blazing.Json.JSONPath](https://github.com/gragra33/Blazing.Json.JSONPath)**. Whether you're working with multi-megabyte API responses, large data exports, or log files, Blazing.Json.Queryable enables you to query JSON data efficiently with the familiar LINQ syntax you already know.
 
 ## Key Features
 
@@ -49,7 +77,7 @@ This custom JSON LINQ provider supports standard string, UTF-8, streaming, and a
 - ✅ **Early Termination**: Stop reading after finding required results (Take, First, Any)
 - ✅ **Streaming Support**: Native `IAsyncEnumerable<T>` for real-time processing
 - ✅ **UTF-8 Native**: Zero-allocation UTF-8 processing with Span\<T\>
-- ✅ **JSONPath Support**: Navigate complex JSON structures efficiently
+- ✅ **RFC 9535 JSONPath**: Full RFC 9535 compliance with filters, functions, and slicing via [Blazing.Json.JSONPath](https://github.com/gragra33/Blazing.Json.JSONPath)
 - ✅ **Full LINQ**: Comprehensive LINQ method support (60+ operations)
 - ✅ **.NET 10 Async LINQ**: Built-in async LINQ with async predicates and transformations
 - ✅ **Multiple Input Formats**: String, Stream, UTF-8 bytes, and more
@@ -113,7 +141,7 @@ var results = await JsonQueryable<Person>.FromStream(stream)
 Install via NuGet Package Manager:
 
 ```xml
-<PackageReference Include="Blazing.Json.Queryable" Version="1.0.0" />
+<PackageReference Include="Blazing.Json.Queryable" Version="1.1.0" />
 ```
 
 Or via the .NET CLI:
@@ -132,9 +160,12 @@ Install-Package Blazing.Json.Queryable
 
 - **.NET 10.0** or later
 - **System.Text.Json** (included with .NET)
-- **[Utf8JsonAsyncStreamReader](https://github.com/gragra33/Utf8JsonAsyncStreamReader)** - Provides JSONPath support for token-based filtering ([NuGet Package](https://www.nuget.org/packages/Utf8JsonAsyncStreamReader))
+- **[Blazing.Json.JSONPath](https://github.com/gragra33/Blazing.Json.JSONPath)** - 100% RFC 9535 compliant JSONPath implementation ([NuGet Package](https://www.nuget.org/packages/Blazing.Json.JSONPath))
   - Automatically included as a dependency
-  - Enables efficient JSONPath navigation: `$.data[*]`, `$.users[*].orders[*]`, etc.
+  - Enables RFC 9535 filter expressions, functions, and slicing
+- **[Utf8JsonAsyncStreamReader](https://github.com/gragra33/Utf8JsonAsyncStreamReader)** - High-performance streaming JSON reader ([NuGet Package](https://www.nuget.org/packages/Utf8JsonAsyncStreamReader))
+  - Automatically included as a dependency
+  - Enables efficient simple path navigation
 
 ### Quick Start
 
@@ -177,7 +208,7 @@ var json = """
     {"Id":2,"Name":"Bob","Age":25,"City":"Paris","IsActive":true},
     {"Id":3,"Name":"Charlie","Age":35,"City":"London","IsActive":false}
 ]
-""";
+""
 
 // Filtering
 var adults = JsonQueryable<Person>.FromString(json)
@@ -300,127 +331,6 @@ await foreach (var person in JsonQueryable<Person>.FromStream(utf8Stream)
 }
 ```
 
-### JSONPath Queries
-
-Navigate complex nested JSON structures from API responses:
-
-> **JSONPath Support:** Powered by [Utf8JsonAsyncStreamReader](https://github.com/gragra33/Utf8JsonAsyncStreamReader) - a high-performance library for token-based JSON filtering with JSONPath expressions.
-
-```csharp
-// Example: GitHub API-style response
-using var httpClient = new HttpClient();
-var apiResponse = await httpClient.GetStringAsync("https://api.example.com/v1/users/123");
-```
-
-Sample API response structure:
-
-```json
-{
-  "status": "success",
-  "data": {
-    "user": {
-      "id": 123,
-      "username": "alice_dev",
-      "profile": {
-        "fullName": "Alice Developer",
-        "email": "alice@example.com",
-        "address": {
-          "city": "London",
-          "country": "UK",
-          "postalCode": "SW1A 1AA"
-        },
-        "metadata": {
-          "joinDate": "2024-01-15",
-          "verified": true
-        }
-      },
-      "repositories": [
-        {
-          "id": 1001,
-          "name": "awesome-project",
-          "stars": 1250,
-          "language": "C#",
-          "isPrivate": false
-        },
-        {
-          "id": 1002,
-          "name": "secret-work",
-          "stars": 45,
-          "language": "TypeScript",
-          "isPrivate": true
-        }
-      ],
-        "organizations": [
-          {
-            "id": 5001,
-            "name": "TechCorp",
-            "role": "developer",
-            "projects": [
-              { "id": 101, "name": "Enterprise API", "budget": 500000.00 },
-              { "id": 102, "name": "Mobile App", "budget": 250000.00 }
-            ]
-          }
-        ]
-      }
-    }
-  }
-}
-```
-
-Query repositories directly using JSONPath:
-
-```csharp
-var publicRepos = JsonQueryable<Repository>
-    .FromString(apiResponse, "$.data.user.repositories[*]")
-    .Where(r => !r.IsPrivate && r.Stars > 100)
-    .OrderByDescending(r => r.Stars)
-    .ToList();
-
-Console.WriteLine($"Found {publicRepos.Count} popular public repositories");
-
-// Query nested organization projects
-var largeProjects = JsonQueryable<Project>
-    .FromString(apiResponse, "$.data.user.organizations[*].projects[*]")
-    .Where(p => p.Budget > 200000)
-    .OrderByDescending(p => p.Budget)
-    .ToList();
-
-Console.WriteLine($"Found {largeProjects.Count} high-budget projects");
-
-// Query user profile data
-var verifiedUser = JsonQueryable<UserProfile>
-    .FromString(apiResponse, "$.data.user.profile")
-    .Where(p => p.Metadata.Verified && p.Address.Country == "UK")
-    .FirstOrDefault();
-
-if (verifiedUser != null)
-{
-    Console.WriteLine($"Verified user: {verifiedUser.FullName} from {verifiedUser.Address.City}");
-}
-
-// Model classes
-public record Repository(int Id, string Name, int Stars, string Language, bool IsPrivate);
-public record Project(int Id, string Name, decimal Budget);
-public record UserProfile(string FullName, string Email, Address Address, Metadata Metadata);
-public record Address(string City, string Country, string PostalCode);
-public record Metadata(string JoinDate, bool Verified);
-```
-
-Stream large API responses efficiently
-
-```csharp
-await using var stream = await httpClient.GetStreamAsync("https://api.example.com/v1/users?page=1&limit=10000");
-
-await foreach (var repo in JsonQueryable<Repository>
-    .FromStream(stream, "$.data.items[*].repositories[*]")
-    .Where(r => r.Language == "C#")
-    .Take(50)
-    .AsAsyncEnumerable())
-{
-    Console.WriteLine($"C# Repository: {repo.Name} ({repo.Stars} stars)");
-}
-```
-
 ## Supported LINQ Methods
 
 ### Filtering Operations
@@ -436,6 +346,7 @@ await foreach (var repo in JsonQueryable<Repository>
 |--------|-------------|---------|
 | `Select` | Projects each element to a new form | `.Select(p => p.Name)` |
 | `SelectMany` | Flattens nested sequences | `.SelectMany(p => p.Orders)` |
+| `Cast<T>` | Casts elements to specified type | `.Cast<Employee>()` |
 
 ### Ordering Operations
 
@@ -445,6 +356,8 @@ await foreach (var repo in JsonQueryable<Repository>
 | `OrderByDescending` | Sorts elements in descending order | `.OrderByDescending(p => p.Age)` |
 | `ThenBy` | Secondary ascending sort | `.ThenBy(p => p.Name)` |
 | `ThenByDescending` | Secondary descending sort | `.ThenByDescending(p => p.Name)` |
+| `Order` | Sorts elements in ascending order (C# 14) | `.Order()` |
+| `OrderDescending` | Sorts elements in descending order (C# 14) | `.OrderDescending()` |
 | `Reverse` | Reverses the order of elements | `.Reverse()` |
 
 ### Quantifier Operations
@@ -525,15 +438,15 @@ await foreach (var repo in JsonQueryable<Repository>
 | `ToDictionary` | Converts to dictionary | `.ToDictionary(p => p.Id)` |
 | `ToHashSet` | Converts to hash set | `.ToHashSet()` |
 | `ToLookup` | Converts to lookup | `.ToLookup(p => p.City)` |
-| `Cast<T>` | Casts elements to type | `.Cast<Employee>()` |
 | `AsEnumerable` | Returns as IEnumerable\<T\> | `.AsEnumerable()` |
 | `AsQueryable` | Returns as IQueryable\<T\> | `.AsQueryable()` |
 | `AsAsyncEnumerable` | Returns as IAsyncEnumerable\<T\> for async operations | `.AsAsyncEnumerable()` |
 
-**Note:** For async conversion operations, use `.AsAsyncEnumerable()` followed by .NET 10's built-in async LINQ methods:
-- `await query.AsAsyncEnumerable().ToListAsync()` - Async conversion to List\<T\>
-- `await query.AsAsyncEnumerable().ToArrayAsync()` - Async conversion to array
-- `await query.AsAsyncEnumerable().ToDictionaryAsync(...)` - Async conversion to dictionary
+> [!NOTE]
+> For async conversion operations, use `.AsAsyncEnumerable()` followed by .NET 10's built-in async LINQ methods:
+> - `await query.AsAsyncEnumerable().ToListAsync()` - Async conversion to List\<T\>
+> - `await query.AsAsyncEnumerable().ToArrayAsync()` - Async conversion to array
+> - `await query.AsAsyncEnumerable().ToDictionaryAsync(...)` - Async conversion to dictionary
 
 ### Sequence Operations
 
@@ -545,13 +458,257 @@ await foreach (var repo in JsonQueryable<Repository>
 | `Zip` | Combines sequences pairwise | `.Zip(ages, (p, a) => ...)` |
 | `DefaultIfEmpty` | Returns default if empty | `.DefaultIfEmpty()` |
 
+## JSONPath Support ([RFC 9535](https://www.rfc-editor.org/rfc/rfc9535.html))
+
+**Blazing.Json.Queryable** provides powerful JSON filtering capabilities through **[Blazing.Json.JSONPath](https://github.com/gragra33/Blazing.Json.JSONPath)** - a high-performance, 100% RFC 9535 compliant JSONPath implementation.
+
+> [!NOTE]
+> **📖 Full JSONPath Documentation**: For complete details on JSONPath syntax, features, and RFC 9535 compliance, visit the **[Blazing.Json.JSONPath repository](https://github.com/gragra33/Blazing.Json.JSONPath)**. This library is automatically included as a dependency when you install Blazing.Json.Queryable.
+
+### Overview
+
+JSONPath provides a powerful query language for JSON documents, similar to XPath for XML. When used with Blazing.Json.Queryable, JSONPath expressions pre-filter JSON data **before deserialization**, dramatically improving performance and reducing memory usage.
+
+The [RFC 9535](https://www.rfc-editor.org/rfc/rfc9535.html) standard defines a consistent, interoperable syntax for:
+- **Filter Expressions**: Pre-filter JSON using comparison (`==`, `!=`, `<`, `>`, etc.) and logical operators (`&&`, `||`, `!`)
+- **Built-in Functions**: `length()`, `count()`, `match()`, `search()`, `value()`
+- **Array Slicing**: `[start:end:step]` with negative indices
+- **Path Navigation**: Navigate nested structures efficiently
+
+### Why Use JSONPath with Blazing.Json.Queryable?
+
+**Performance Benefits**:
+```csharp
+// Traditional LINQ: Deserialize ALL 1M products, then filter in C#
+var traditional = JsonQueryable<Product>.FromString(json)
+    .Where(p => p.Price < 100 && p.InStock && p.Category == "Electronics")
+    .ToList();
+// Deserializes: 1,000,000 objects
+// Memory: ~500MB, Time: ~2000ms
+
+// JSONPath Pre-filter: Filter in JSON BEFORE deserialization (1M → 500 items)
+var optimized = JsonQueryable<Product>
+    .FromString(json, "$[?@.price < 100 && @.inStock == true && @.category == 'Electronics']")
+    .ToList();
+// Deserializes: 500 objects (only matches!)
+// Memory: ~25MB (20x less!), Time: ~200ms (10x faster!)
+```
+
+**Key Advantages**:
+- **10-100x faster** for highly selective queries on large datasets
+- **90%+ memory reduction** by deserializing only matching items
+- **Powered by Blazing.Json.JSONPath**: 100% RFC 9535 compliant implementation
+- **Combines best of both**: JSONPath for pre-filtering + LINQ for rich operations
+
+### JSONPath Syntax Quick Reference
+
+| Feature | Syntax | Example | Description |
+|---------|--------|---------|-------------|
+| **Root** | `$` | `$` | Root JSON element |
+| **Child** | `.property` or `['property']` | `$.data.users` | Access nested property |
+| **Wildcard** | `*` or `[*]` | `$.users[*]` | All array elements |
+| **Filter** | `[?expression]` | `$[?@.age > 25]` | Filter by condition |
+| **Slice** | `[start:end:step]` | `$[2:10:2]` | Array slice with step |
+| **Current** | `@` | `@.price < 100` | Current element in filter |
+| **Comparison** | `==`, `!=`, `<`, `<=`, `>`, `>=` | `@.price >= 50` | Comparison operators |
+| **Logical** | `&&`, `\|\|`, `!` | `@.age > 18 && @.active` | Logical operators |
+| **length()** | `length(value)` | `length(@.name) > 5` | String, array, or object length |
+| **match()** | `match(string, pattern)` | `match(@.email, '.*@example\\.com')` | Full regex match (I-Regexp) |
+| **search()** | `search(string, pattern)` | `search(@.desc, 'wireless')` | Substring regex search |
+| **count()** | `count(nodelist)` | `count($.items[*])` | Count nodes in nodelist |
+| **value()** | `value(nodelist)` | `value(@.tags[0])` | Convert singular nodelist to value |
+
+### Simple Path Navigation
+
+Navigate to nested arrays using simple JSONPath expressions:
+
+```csharp
+// API response: { "data": { "user": { "repositories": [...] } } }
+var repos = JsonQueryable<Repository>
+    .FromString(apiResponse, "$.data.user.repositories[*]")
+    .Where(r => !r.IsPrivate)
+    .ToList();
+```
+
+### Filter Expressions
+
+Apply powerful filters directly in JSONPath (powered by **[Blazing.Json.JSONPath](https://github.com/gragra33/Blazing.Json.JSONPath)**):
+
+```csharp
+// Comparison operators: ==, !=, <, <=, >, >=
+var highEarners = JsonQueryable<Employee>
+    .FromString(json, "$[?@.salary > 100000]")
+    .ToList();
+
+// Logical operators: &&, ||, !
+var seniorHighEarners = JsonQueryable<Employee>
+    .FromString(json, "$[?@.salary > 90000 && @.yearsEmployed >= 5]")
+    .ToList();
+```
+
+### Built-in Functions
+
+**Blazing.Json.JSONPath** provides all RFC 9535 standard functions:
+
+```csharp
+// length() - string, array, or object length
+var longNames = JsonQueryable<Product>
+    .FromString(json, "$[?length(@.name) > 10]")
+    .ToList();
+
+// match() - full regex match (I-Regexp RFC 9485)
+var electronics = JsonQueryable<Product>
+    .FromString(json, "$[?match(@.code, '^ELEC-.*')]")
+    .ToList();
+
+// search() - substring regex search
+var wireless = JsonQueryable<Product>
+    .FromString(json, "$[?search(@.name, 'Wireless')]")
+    .ToList();
+```
+
+### Array Slicing
+
+Advanced array slicing with step support:
+
+```csharp
+// [start:end] - elements from start to end (exclusive)
+var middle = JsonQueryable<Item>
+    .FromString(json, "$[2:5]")  // Elements 2, 3, 4
+    .ToList();
+
+// [start:end:step] - every Nth element
+var everyOther = JsonQueryable<Item>
+    .FromString(json, "$[0:9:2]")  // Elements 0, 2, 4, 6, 8
+    .ToList();
+
+// Negative indices - count from end
+var last3 = JsonQueryable<Item>
+    .FromString(json, "$[-3:]")  // Last 3 elements
+    .ToList();
+
+// Reverse with negative step
+var reversed = JsonQueryable<Item>
+    .FromString(json, "$[::-1]")  // All elements in reverse
+    .ToList();
+```
+
+### Combining JSONPath with LINQ
+
+The real power: JSONPath pre-filtering + LINQ rich operations
+
+#### Real-World Example: Department Workforce Analysis
+
+```csharp
+var employeesJson = """
+[
+    {"id": 1, "name": "Alice Johnson", "department": "Engineering", "salary": 95000, "yearsEmployed": 5},
+    {"id": 2, "name": "Bob Smith", "department": "Engineering", "salary": 105000, "yearsEmployed": 8},
+    {"id": 3, "name": "Charlie Brown", "department": "Sales", "salary": 75000, "yearsEmployed": 3},
+    {"id": 4, "name": "Diana Prince", "department": "Engineering", "salary": 120000, "yearsEmployed": 10},
+    {"id": 5, "name": "Eve Davis", "department": "Marketing", "salary": 70000, "yearsEmployed": 2},
+    {"id": 6, "name": "Frank Miller", "department": "Engineering", "salary": 98000, "yearsEmployed": 6}
+]
+""";
+
+Console.WriteLine("\nDepartment workforce analysis [MIXED JSONPATH + LINQ]:");
+var deptAnalysis = JsonQueryable<Employee>
+    .FromString(employeesJson, "$[?@.salary > 60000]")  // JSONPath: Filter employees with salary > $60K
+    .GroupBy(e => e.Department)                          // LINQ: Group by department
+    .Select(g => new
+    {
+        Department = g.Key,
+        EmployeeCount = g.Count(),
+        AvgSalary = g.Average(e => e.Salary),
+        TotalYearsExperience = g.Sum(e => e.YearsEmployed),
+        TopEarner = g.OrderByDescending(e => e.Salary).First().Name
+    })
+    .OrderByDescending(x => x.AvgSalary)    // LINQ: Primary sort by avg salary (descending)
+    .ThenBy(x => x.Department)              // LINQ: Secondary sort by department name (ascending)
+    .ToList();
+
+foreach (var dept in deptAnalysis)
+{
+    Console.WriteLine($"      - {dept.Department}: {dept.EmployeeCount} employees, " +
+                     $"${dept.AvgSalary:N0} avg salary, " +
+                     $"{dept.TotalYearsExperience} total years, " +
+                     $"top earner: {dept.TopEarner}");
+}
+```
+
+**Output**:
+```
+Department workforce analysis [MIXED JSONPATH + LINQ]:
+      - Engineering: 4 employees, $104,500 avg salary, 29 total years, top earner: Diana Prince
+      - Sales: 1 employees, $75,000 avg salary, 3 total years, top earner: Charlie Brown
+      - Marketing: 1 employees, $70,000 avg salary, 2 total years, top earner: Eve Davis
+```
+
+**Performance Analysis**:
+- **JSONPath Pre-filter** (`$[?@.salary > 60000]`): Filters in JSON before deserialization
+- **LINQ Operations**: GroupBy, aggregations, sorting on filtered set
+- **Result**: Minimal memory usage, type-safe operations, optimal performance
+
+### Performance Best Practices
+
+**✅ DO: Use JSONPath for Selective Filtering**
+```csharp
+// GOOD: Pre-filter with JSONPath (1M → 500 items)
+var results = JsonQueryable<Product>
+    .FromString(largeJson, "$[?@.price < 100 && @.inStock == true]")
+    .OrderBy(p => p.Name)
+    .Take(10)
+    .ToList();
+```
+
+**❌ DON'T: Use LINQ Where for Initial Filtering on Large Datasets**
+```csharp
+// BAD: Deserializes ALL 1M first, then filters
+var results = JsonQueryable<Product>
+    .FromString(largeJson)  // No JSONPath pre-filter!
+    .Where(p => p.Price < 100 && p.InStock)  // Deserializes 1,000,000 objects
+    .OrderBy(p => p.Name)
+    .Take(10)
+    .ToList();
+```
+
+### When to Use JSONPath vs LINQ Where
+
+| Scenario | Recommendation | Reason |
+|----------|----------------|--------|
+| **Filtering > 10% of data** | LINQ `Where` | Small dataset, LINQ is simpler |
+| **Filtering < 10% of data** | ✅ JSONPath filter | Avoid deserializing non-matches |
+| **Large files (> 10MB)** | ✅ JSONPath filter | Significant memory savings |
+| **Complex string operations** | ✅ JSONPath `match()`, `search()` | Optimized regex in JSON |
+| **Dynamic predicates** | LINQ `Where` | JSONPath is static string |
+| **Type-safe predicates** | LINQ `Where` | Compile-time safety |
+
+### Learn More
+
+**Blazing.Json.JSONPath** - The JSONPath engine powering this functionality:
+- **GitHub**: [https://github.com/gragra33/Blazing.Json.JSONPath](https://github.com/gragra33/Blazing.Json.JSONPath)
+- **NuGet**: [Blazing.Json.JSONPath Package](https://www.nuget.org/packages/Blazing.Json.JSONPath)
+- **RFC 9535 Spec**: [IETF RFC 9535](https://www.rfc-editor.org/rfc/rfc9535.html)
+
+**Key Features**:
+- ✅ 100% RFC 9535 compliant
+- ✅ High-performance implementation
+- ✅ Full filter expression support
+- ✅ All standard built-in functions
+- ✅ Array slicing with step
+- ✅ I-Regexp (RFC 9485) regex support
+
+**Sample Code**:
+- `samples/Blazing.Json.Queryable.Samples/Examples/AdvancedJsonPathSamples.cs`
+- Real-world scenarios demonstrating JSONPath + LINQ combinations
+
 ## How It Works
 
 **Blazing.Json.Queryable** uses a custom LINQ provider that translates LINQ expressions into efficient JSON processing operations:
 
 1. **Expression Tree Analysis**: LINQ queries are analyzed to build an execution plan
 2. **Streaming JSON Parser**: Uses `System.Text.Json.Utf8JsonReader` for efficient parsing
-3. **JSONPath Navigation**: Leverages [Utf8JsonAsyncStreamReader](https://github.com/gragra33/Utf8JsonAsyncStreamReader) for token-based filtering when JSONPath expressions are used
+3. **JSONPath Navigation**: Powered by **[Blazing.Json.JSONPath](https://github.com/gragra33/Blazing.Json.JSONPath)** for RFC 9535 compliant filtering when JSONPath expressions are used
 4. **Lazy Evaluation**: Only processes JSON elements needed for the query
 5. **Early Termination**: Stops reading JSON as soon as query requirements are met
 6. **Zero-Allocation UTF-8**: Direct UTF-8 processing using `Span<byte>` and `ReadOnlySpan<byte>`
@@ -626,22 +783,36 @@ var results = await JsonQueryable<Person>.FromStream(stream)
 
 ## Samples
 
-The library includes comprehensive sample projects demonstrating different usage patterns:
+The library includes comprehensive sample and benchmark projects demonstrating different usage patterns and performance characteristics:
 
 ### Sample Projects
 
-All samples are located in the `samples/Blazing.Json.Queryable.Samples` directory:
+All samples are located in the `samples/Blazing.Json.Queryable.Samples` directory (basic to advanced order):
 
-- **BasicQueries.cs** - Fundamental LINQ operations (Where, Select, OrderBy, Take, Skip, First, Count, Any)
-- **AdvancedLinqOperationsSamples.cs** - Advanced operations (Zip, Chunk, DistinctBy, ExceptBy, IntersectBy, UnionBy)
-- **StreamQueries.cs** - Async streaming with `IAsyncEnumerable<T>`
-- **Utf8Queries.cs** - Zero-allocation UTF-8 processing examples
-- **JsonPathSamples.cs** - Complex JSONPath navigation
-- **ComplexGroupingSamples.cs** - GroupBy, Join, and GroupJoin operations
-- **LargeDatasetSamples.cs** - Memory-efficient large file processing
-- **PerformanceComparison.cs** - Benchmarks comparing traditional vs streaming approaches
-- **AsyncQueries.cs** - .NET 10 async LINQ with async predicates
-- **AdvancedScenarios.cs** - Real-world patterns and best practices
+1. **BasicQueries.cs** - Fundamental LINQ operations (Where, Select, OrderBy, Take, Skip, First, Count, Any)
+2. **Utf8Queries.cs** - Zero-allocation UTF-8 processing examples
+3. **StreamQueries.cs** - Async streaming with `IAsyncEnumerable<T>`
+4. **AsyncQueries.cs** - .NET 10 async LINQ with async predicates and transformations
+5. **CustomConverters.cs** - Custom JSON converters and serialization options
+6. **AdvancedScenarios.cs** - Real-world patterns, error handling, and best practices
+7. **LargeDatasetSamples.cs** - In-memory processing of large datasets (100K-1M records)
+8. **LargeDatasetFileStreamingSamples.cs** - True I/O streaming for memory-efficient large file processing
+9. **ComplexGroupingSamples.cs** - GroupBy, Join, and GroupJoin operations with aggregations
+10. **JsonPathSamples.cs** - Simple JSONPath navigation for nested structures
+11. **AdvancedJsonPathSamples.cs** - RFC 9535 filters, functions, slicing, and real-world scenarios
+12. **AdvancedLinqOperationsSamples.cs** - Advanced operations (Chunk, Zip, DistinctBy, ExceptBy, IntersectBy, UnionBy)
+13. **PerformanceComparison.cs** - Benchmarks comparing traditional vs streaming approaches
+
+### Benchmark Suites
+
+All benchmarks are located in the `benchmarks/Blazing.Json.Queryable.Benchmarks` directory:
+
+1. **SyncInMemoryBenchmarks** - In-memory performance (100, 1K, 10K records)
+2. **SyncFileIOBenchmarks** - File I/O performance (1K, 10K records)  
+3. **AsyncStreamBenchmarks** - Async streaming (10K, 100K records)
+4. **MemoryAllocationBenchmarks** - Zero-allocation validation
+5. **LargeFileStreamingBenchmarks** - Constant memory proof (10MB, 100MB files)
+6. **ComprehensiveComparisonBenchmarks** - Side-by-side comparison across all scenarios
 
 ### Running the Samples
 
@@ -650,7 +821,7 @@ All samples are located in the `samples/Blazing.Json.Queryable.Samples` director
 git clone https://github.com/gragra33/Blazing.Json.Queryable.git
 cd Blazing.Json.Queryable
 
-# Run the samples project
+# Run the samples project (interactive menu)
 dotnet run --project samples/Blazing.Json.Queryable.Samples
 ```
 
@@ -660,6 +831,29 @@ The samples include:
 - Memory usage comparisons
 - Real-world scenarios
 - Best practices demonstrations
+
+### Running the Benchmarks
+
+```bash
+# Run benchmarks (interactive mode)
+cd benchmarks/Blazing.Json.Queryable.Benchmarks
+dotnet run -c Release
+
+# Or run specific benchmark suite
+dotnet run -c Release -- --filter *SyncInMemory*
+dotnet run -c Release -- --filter *AsyncStream*
+dotnet run -c Release -- --filter *Comprehensive*
+
+# List all available benchmarks
+dotnet run -c Release -- --list flat
+```
+
+The benchmarks provide:
+- Detailed performance metrics (Mean, StdDev, Min, Max)
+- Memory allocation tracking
+- GC collection statistics
+- Side-by-side comparisons (Traditional vs Blazing.Json.Queryable)
+- HTML/Markdown reports in `BenchmarkDotNet.Artifacts`
 
 ## Give a ⭐
 
@@ -676,6 +870,25 @@ Also, if you find this library useful and you're feeling really generous, please
 
 ## History
 
+### V1.1.0 - 12 January, 2026
+
+- **RFC 9535 JSONPath Support**
+  - Full compliance with [RFC 9535](https://www.rfc-editor.org/rfc/rfc9535.html) - the official IETF standard
+  - Filter expressions in JSON before deserialization
+  - Regex pattern matching with I-Regexp (RFC 9485)
+  - Substring search capabilities
+  - Combine JSONPath filters with LINQ operations
+  - Nested path navigation with filters  
+- **Performance Improvements**:
+  - Pre-filter in JSON reduces deserialization overhead
+  - 10-100x faster for filtered queries on large datasets
+  - Seamless integration with existing LINQ pipeline
+  - Automatic optimization routing  
+- **New Samples**:
+  - AdvancedJsonPathSamples - RFC 9535 features demonstration
+  - Real-world scenarios with complex filters
+  - Performance comparison examples  
+
 ### V1.0.0 - 11 January, 2026
 
 **Initial Release** - Full production release
@@ -685,55 +898,47 @@ Also, if you find this library useful and you're feeling really generous, please
   - Direct JSON processing without full deserialization
   - Early termination support for Take, First, Any operations
   - Memory-efficient streaming for files larger than RAM
-  
 - **Input Format Support**:
   - Standard JSON strings
   - UTF-8 byte arrays and spans (zero-allocation)
   - File streams with async enumeration
   - Advanced streaming with `IAsyncEnumerable<T>`
-  
 - **LINQ Operations**:
   - **Filtering**: Where, OfType
-  - **Projection**: Select, SelectMany
-  - **Ordering**: OrderBy, OrderByDescending, ThenBy, ThenByDescending, Reverse
+  - **Projection**: Select, SelectMany, Cast
+  - **Ordering**: OrderBy, OrderByDescending, ThenBy, ThenByDescending, Order, OrderDescending, Reverse
   - **Quantifiers**: All, Any, Contains, SequenceEqual
   - **Element Access**: First, FirstOrDefault, Last, LastOrDefault, Single, SingleOrDefault, ElementAt, ElementAtOrDefault
   - **Aggregation**: Count, LongCount, Sum, Average, Min, Max, MinBy, MaxBy, Aggregate
   - **Set Operations**: Distinct, DistinctBy, Union, UnionBy, Intersect, IntersectBy, Except, ExceptBy
   - **Partitioning**: Take, TakeLast, TakeWhile, Skip, SkipLast, SkipWhile, Chunk
   - **Grouping**: GroupBy, GroupJoin, Join
-  - **Conversion**: ToList, ToArray, ToDictionary, ToHashSet, ToLookup, Cast, AsEnumerable, AsQueryable, AsAsyncEnumerable
+  - **Conversion**: ToList, ToArray, ToDictionary, ToHashSet, ToLookup, AsEnumerable, AsQueryable, AsAsyncEnumerable
   - **Sequence**: Concat, Append, Prepend, Zip, DefaultIfEmpty
-  
 - **.NET 10 Features**:
   - Built-in async LINQ support with async predicates
   - Async transformations with Select
   - Native cancellation token support
   - Enhanced performance with latest runtime optimizations
-  
 - **Performance Optimizations**:
   - Zero-allocation UTF-8 processing with Span<T>
   - Early termination (10-20x faster for Take/First on large files)
   - Constant memory usage regardless of file size
   - Efficient execution plan optimization
-  
 - **Advanced Capabilities**:
-  - JSONPath support for nested JSON navigation
+  - Simple JSONPath support for nested JSON navigation
   - Complex query translation and optimization
   - Async streaming with proper cancellation
-  
 - **Documentation**:
   - Comprehensive README with examples
   - Full XML documentation in NuGet package
-  - sample project with 10+  demonstrations of all features
+  - Sample project with 10+ demonstrations of all features
   - Performance comparison benchmarks
-  
 - **Quality Assurance**:
   - Comprehensive test coverage
   - Real-world performance benchmarks
   - Production-ready error handling
   - Best practices implementation
-
 ---
 
 **License**: MIT License - see [LICENSE](LICENSE) file for details
