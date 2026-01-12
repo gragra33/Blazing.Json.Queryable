@@ -18,7 +18,6 @@ public class MemoryAllocationBenchmarks
     private string? _json1000;
     private byte[]? _utf81000;
     private Person? _testPerson;
-    private SpanPropertyAccessor? _accessor;
 
     [GlobalSetup]
     public void Setup()
@@ -27,7 +26,7 @@ public class MemoryAllocationBenchmarks
         _json1000 = BenchmarkHelpers.ToJsonString(_people1000);
         _utf81000 = BenchmarkHelpers.ToUtf8Bytes(_people1000);
         _testPerson = _people1000[0];
-        _accessor = new SpanPropertyAccessor();
+        // SpanPropertyAccessor is now static - no need to instantiate
     }
 
     #region String vs UTF-8 Provider Allocations
@@ -63,7 +62,7 @@ public class MemoryAllocationBenchmarks
         for (int i = 0; i < 1000; i++)
         {
             // Use span-based property access
-            var value = _accessor!.GetValue(_testPerson!, "Age".AsSpan());
+            var value = SpanPropertyAccessor.GetValue(_testPerson!, "Age".AsSpan());
             if (value is int age)
             {
                 sum += age;
@@ -79,7 +78,7 @@ public class MemoryAllocationBenchmarks
         for (int i = 0; i < 1000; i++)
         {
             // Use string-based property access (should still be cached)
-            var value = _accessor!.GetValueByName(_testPerson!, "Age");
+            var value = SpanPropertyAccessor.GetValueByName(_testPerson!, "Age");
             if (value is int age)
             {
                 sum += age;

@@ -10,29 +10,27 @@
     
     <!-- NuGet Package Metadata -->
     <PackageId>Blazing.Json.Queryable</PackageId>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
     <Authors>Graeme Grant</Authors>
     <Company>Graeme Grant</Company>
-    <Copyright>Copyright © 2026 Graeme Grant. All rights reserved.</Copyright>
-    <Description>High-performance LINQ provider for JSON data that processes JSON directly without full deserialization. Supports standard string, UTF-8, streaming, and RFC 9535 compliant JSONPath operations. Dramatically improves performance and memory efficiency for medium to large JSON files through early termination and constant memory usage. Includes native IAsyncEnumerable support and .NET 10 async LINQ integration.</Description>
-    <PackageTags>linq;json;queryable;system.text.json;span;performance;utf8;async;streaming;iasyncenumerable;jsonpath;rfc9535;linq-provider;high-performance;memory-efficient;early-termination</PackageTags>
+    <Copyright>Copyright (c) 2026 Graeme Grant. All rights reserved.</Copyright>
+	  <Description>High-performance LINQ provider for JSON data that processes JSON directly without full deserialization. Supports standard string, UTF-8, streaming, and RFC 9535 compliant JSONPath operations. Dramatically improves performance and memory efficiency for medium to large JSON files through early termination and constant memory usage. Includes native IAsyncEnumerable support and .NET 10 async LINQ integration.</Description>
+	  <PackageTags>linq;json;queryable;system.text.json;span;performance;utf8;async;streaming;iasyncenumerable;jsonpath;rfc9535;linq-provider;high-performance;memory-efficient;early-termination</PackageTags>
     <PackageProjectUrl>https://github.com/gragra33/Blazing.Json.Queryable</PackageProjectUrl>
     <RepositoryUrl>https://github.com/gragra33/Blazing.Json.Queryable</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>
+		V1.1.1 - 13 January, 2026 - Streaming Restoration for Simple Wildcard Paths
+		- Restored true streaming for simple wildcard-only JSONPath expressions
+
 		V1.1.0 - 12 January, 2026 - RFC 9535 JSONPath Support
 		- RFC 9535 compliant JSONPath with filters, functions, and slicing
-		- Advanced JSONPath filter expressions with comparison and logical operators
-		- Built-in JSONPath functions: length(), count(), match(), search(), value()
-		- Array slicing with step support [start:end:step]
-		- Seamless integration with existing LINQ operations
-		- Automatic detection and routing for optimal performance
-		- Backward compatible with existing simple path navigation
-		
+
 		V1.0.0 - 10 January, 2026 - Initial Release
 		- Custom LINQ provider for JSON with 60+ LINQ methods
+		- Query Expression and Method Syntax support
 		- Direct JSON processing without full deserialization
 		- Early termination support (10-20x faster for Take/First)
 		- Memory-efficient streaming for files larger than RAM
@@ -48,12 +46,13 @@
     <!-- Symbol Package Settings - CRITICAL for snupkg generation -->
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <PublishRepositoryUrl Condition="'$(ContinuousIntegrationBuild)' == 'true'">true</PublishRepositoryUrl>
     <!-- Portable PDB is required for snupkg symbol packages -->
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <!-- Embed sources in PDB for SourceLink debugging -->
     <EmbedAllSources>true</EmbedAllSources>
+    <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>
 

@@ -136,17 +136,16 @@ public class MemoryProfileValidationTests
     public void SpanPropertyAccess_ShouldNotAllocate_ZeroAllocationPerAccess()
     {
         // Arrange
-        var accessor = new Implementations.SpanPropertyAccessor();
         var person = TestData.GetSmallPersonDataset().First();
 
         // Warm up cache
-        _ = accessor.GetValue(person, "Name".AsSpan());
+        _ = Implementations.SpanPropertyAccessor.GetValue(person, "Name".AsSpan());
 
         // Act - Multiple accesses (should be zero-allocation after cache warm-up)
         var results = new List<object?>();
         for (int i = 0; i < 1000; i++)
         {
-            var value = accessor.GetValue(person, "Name".AsSpan());
+            var value = Implementations.SpanPropertyAccessor.GetValue(person, "Name".AsSpan());
             results.Add(value);
         }
 

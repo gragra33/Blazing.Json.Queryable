@@ -1,4 +1,5 @@
 using Blazing.Json.Queryable.Providers;
+using Blazing.Json.Queryable.Samples.Models;
 
 namespace Blazing.Json.Queryable.Samples.Examples;
 
@@ -220,8 +221,3 @@ public static class BasicQueries
         Console.WriteLine();
     }
 }
-
-/// <summary>
-/// Person model for sample queries.
-/// </summary>
-public record Person(int Id, string Name, int Age, string City, string Email, bool IsActive);

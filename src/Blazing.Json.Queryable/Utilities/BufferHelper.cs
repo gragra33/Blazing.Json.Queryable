@@ -55,13 +55,13 @@ public static class BufferHelper
     /// <code>
     /// if (BufferHelper.IsStackAllocSafe(bufferSize))
     /// {
-    ///     // ✅ Safe for synchronous methods
+    ///     // Safe for synchronous methods
     ///     Span&lt;byte&gt; buffer = stackalloc byte[bufferSize];
     ///     // Use buffer...
     /// }
     /// else
     /// {
-    ///     // ✅ Use ArrayPool for large buffers or async
+    ///     // Use ArrayPool for large buffers or async
     ///     byte[] buffer = ArrayPool&lt;byte&gt;.Shared.Rent(bufferSize);
     ///     try
     ///     {
@@ -153,7 +153,7 @@ public static class BufferHelper
     ///     }
     ///     finally
     ///     {
-    ///         BufferHelper.ReturnPooledBuffer(buffer);  // ✅ CRITICAL
+    ///         BufferHelper.ReturnPooledBuffer(buffer);  // CRITICAL
     ///     }
     /// }
     /// </code>

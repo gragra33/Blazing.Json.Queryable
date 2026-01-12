@@ -1,4 +1,5 @@
 using Blazing.Json.Queryable.Providers;
+using Blazing.Json.Queryable.Samples.Models;
 using System.Diagnostics;
 
 namespace Blazing.Json.Queryable.Samples.Examples;

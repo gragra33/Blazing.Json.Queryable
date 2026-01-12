@@ -13,6 +13,12 @@ namespace Blazing.Json.Queryable.Execution;
 /// </summary>
 public sealed class StreamQueryExecutor : IQueryExecutor
 {
+    // Cache default JsonSerializerOptions to avoid repeated allocation
+    private static readonly JsonSerializerOptions DefaultOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     private readonly Stream _stream;
     private readonly JsonSerializerOptions _options;
     private readonly QueryOperationExecutor _operations = new();
@@ -21,7 +27,7 @@ public sealed class StreamQueryExecutor : IQueryExecutor
     /// Initializes a new instance of the <see cref="StreamQueryExecutor"/> class.
     /// </summary>
     /// <param name="stream">The JSON stream to read from.</param>
-    /// <param name="options">JSON serializer options. If null, uses case-insensitive property names.</param>
+    /// <param name="options">JSON serializer options. If null, uses cached default options.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="stream"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown if <paramref name="stream"/> is not readable.</exception>
     public StreamQueryExecutor(
@@ -29,10 +35,7 @@ public sealed class StreamQueryExecutor : IQueryExecutor
         JsonSerializerOptions? options)
     {
         _stream = stream ?? throw new ArgumentNullException(nameof(stream));
-        _options = options ?? new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
+        _options = options ?? DefaultOptions;
 
         if (!stream.CanRead)
         {

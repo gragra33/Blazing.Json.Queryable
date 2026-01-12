@@ -58,7 +58,7 @@ public static class Utf8Helper
     /// string json = File.ReadAllText("data.json");  // UTF-16
     /// byte[] utf8 = Utf8Helper.ConvertToUtf8(json);  // Conversion overhead
     /// 
-    /// // ✅ UTF-8-based (no conversion)
+    /// // UTF-8-based (no conversion)
     /// byte[] utf8 = File.ReadAllBytes("data.json");  // Already UTF-8
     /// </code>
     /// </para>

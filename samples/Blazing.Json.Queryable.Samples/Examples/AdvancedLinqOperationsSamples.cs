@@ -601,7 +601,8 @@ public static class AdvancedLinqOperationsSamples
             {
                 City = g.Key,
                 AverageScore = g.Average(),
-                MaxScore = g.Max()
+                MaxScore = g.Max(),
+                Scores = g.ToList() // Store individual scores for proper averaging
             })
             .GroupBy(x => x.AverageScore >= 90 ? "High Performance" : "Standard")
             .Select(g => new
@@ -609,7 +610,7 @@ public static class AdvancedLinqOperationsSamples
                 Category = g.Key,
                 CityCount = g.Count(),
                 Cities = g.Select(x => x.City).ToList(),
-                OverallAverage = g.Average(x => x.AverageScore)
+                OverallAverage = g.SelectMany(x => x.Scores).Average() // Calculate from all individual scores
             })
             .ToList();
 

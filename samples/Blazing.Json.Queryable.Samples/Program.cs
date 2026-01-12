@@ -23,19 +23,21 @@ while (true)
     Console.WriteLine("  3. Stream Processing (Memory-efficient large files)");
     Console.WriteLine("  4. Async Queries (.NET 10 async LINQ support)");
     Console.WriteLine("  5. Custom Converters (JsonSerializerOptions)");
-    Console.WriteLine("  6. Advanced Scenarios (Complex queries, error handling)");
-    Console.WriteLine("  7. Large Dataset Samples (100K-1M records, in-memory streaming)");
-    Console.WriteLine("  8. Large Dataset File Streaming (True I/O streaming benefits)");
-    Console.WriteLine("  9. Complex GroupBy Operations (Aggregations, nested grouping)");
-    Console.WriteLine(" 10. JSONPath Filtering (Multi-level array wildcards)");
-    Console.WriteLine(" 11. Advanced JSONPath (RFC 9535: Filters, Functions, Slicing)");
-    Console.WriteLine(" 12. Advanced LINQ Operations (Chunk, Join, GroupJoin, GroupBy)");
-    Console.WriteLine(" 13. Query Syntax Examples (SQL-like declarative queries)");
-    Console.WriteLine(" 14. Performance Comparisons (Benchmarks)");
-    Console.WriteLine(" 15. Run All Examples");
+    Console.WriteLine("  6. Element Access Operations (ElementAt, Last, Single with Index)");
+    Console.WriteLine("  7. Conversion Operations (ToDictionary, ToHashSet, ToLookup)");
+    Console.WriteLine("  8. Advanced Scenarios (Complex queries, error handling)");
+    Console.WriteLine("  9. Large Dataset Samples (100K-1M records, in-memory streaming)");
+    Console.WriteLine(" 10. Large Dataset File Streaming (True I/O streaming benefits)");
+    Console.WriteLine(" 11. Complex GroupBy Operations (Aggregations, nested grouping)");
+    Console.WriteLine(" 12. JSONPath Filtering (Multi-level array wildcards)");
+    Console.WriteLine(" 13. Advanced JSONPath (RFC 9535: Filters, Functions, Slicing)");
+    Console.WriteLine(" 14. Advanced LINQ Operations (Chunk, Join, GroupJoin, GroupBy)");
+    Console.WriteLine(" 15. Query Syntax Examples (SQL-like declarative queries)");
+    Console.WriteLine(" 16. Performance Comparisons (Benchmarks)");
+    Console.WriteLine(" 17. Run All Examples");
     Console.WriteLine("  0. Exit");
     Console.WriteLine();
-    Console.Write("Select an option (0-15): ");
+    Console.Write("Select an option (0-17): ");
     
     var input = Console.ReadLine();
     Console.WriteLine();
@@ -64,43 +66,51 @@ while (true)
                 CustomConverters.RunAll();
                 break;
                 
-            case "6":
-                await AdvancedScenarios.RunAllAsync();
+             case "6":
+                ElementAccessSamples.RunAll();
                 break;
                 
             case "7":
-                await LargeDatasetSamples.RunAllAsync();
+                ConversionOperationsSamples.RunAll();
                 break;
                 
-            case "8":
-                await LargeDatasetFileStreamingSamples.RunAllAsync();
+           case "8":
+                await AdvancedScenarios.RunAllAsync();
                 break;
                 
             case "9":
-                ComplexGroupingSamples.RunAll();
+                await LargeDatasetSamples.RunAllAsync();
                 break;
                 
             case "10":
-                JsonPathSamples.RunAll();
+                await LargeDatasetFileStreamingSamples.RunAllAsync();
                 break;
                 
             case "11":
-                AdvancedJsonPathSamples.RunAll();
+                ComplexGroupingSamples.RunAll();
                 break;
                 
             case "12":
-                AdvancedLinqOperationsSamples.RunAll();
+                JsonPathSamples.RunAll();
                 break;
                 
             case "13":
-                QuerySyntaxSamples.RunAll();
+                AdvancedJsonPathSamples.RunAll();
                 break;
                 
             case "14":
-                await PerformanceComparison.RunAllAsync();
+                AdvancedLinqOperationsSamples.RunAll();
                 break;
                 
             case "15":
+                QuerySyntaxSamples.RunAll();
+                break;
+                
+            case "16":
+                await PerformanceComparison.RunAllAsync();
+                break;
+                
+            case "17":
                 Console.WriteLine("=================================================================");
                 Console.WriteLine("RUNNING ALL EXAMPLES");
                 Console.WriteLine("=================================================================");
@@ -111,6 +121,8 @@ while (true)
                 StreamQueries.RunAll();
                 await AsyncQueries.RunAllAsync();
                 CustomConverters.RunAll();
+                ElementAccessSamples.RunAll();
+                ConversionOperationsSamples.RunAll();
                 await AdvancedScenarios.RunAllAsync();
                 await LargeDatasetSamples.RunAllAsync();
                 await LargeDatasetFileStreamingSamples.RunAllAsync();
@@ -133,7 +145,7 @@ while (true)
                 return;
                 
             default:
-                Console.WriteLine("Invalid option. Please select 0-15.");
+                Console.WriteLine("Invalid option. Please select 0-17.");
                 Console.WriteLine();
                 break;
         }
@@ -148,6 +160,7 @@ while (true)
     }
     
     Console.WriteLine("Press any key to continue...");
-    Console.ReadKey();
+    //Console.ReadKey();
+    Console.ReadLine(); // used during debugging
     Console.Clear();
 }

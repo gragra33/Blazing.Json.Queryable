@@ -1,5 +1,6 @@
 using Blazing.Json.Queryable.Core;
 using Blazing.Json.Queryable.Visitors;
+using Blazing.Json.Queryable.Utilities;
 // ReSharper disable PossibleMultipleEnumeration
 
 namespace Blazing.Json.Queryable.Execution;
@@ -110,20 +111,21 @@ internal sealed class QueryOperationExecutor
 
             for (int i = 0; i < plan.SortPropertyPaths.Length; i++)
             {
+                // Convert span to string once for use in lambda
                 string propertyPath = plan.GetSortPath(i).ToString();
                 bool ascending = plan.SortDirections?[i] ?? true;
 
                 if (i == 0)
                 {
                     ordered = ascending
-                        ? query.OrderBy(item => GetPropertyValue(item, propertyPath))
-                        : query.OrderByDescending(item => GetPropertyValue(item, propertyPath));
+                        ? query.OrderBy(item => GetPropertyValue(item, propertyPath.AsSpan()))
+                        : query.OrderByDescending(item => GetPropertyValue(item, propertyPath.AsSpan()));
                 }
                 else
                 {
                     ordered = ascending
-                        ? ordered!.ThenBy(item => GetPropertyValue(item, propertyPath))
-                        : ordered!.ThenByDescending(item => GetPropertyValue(item, propertyPath));
+                        ? ordered!.ThenBy(item => GetPropertyValue(item, propertyPath.AsSpan()))
+                        : ordered!.ThenByDescending(item => GetPropertyValue(item, propertyPath.AsSpan()));
                 }
             }
 
@@ -445,7 +447,8 @@ internal sealed class QueryOperationExecutor
     /// <param name="source">Source collection.</param>
     /// <param name="plan">Query execution plan.</param>
     /// <returns>The aggregation result.</returns>
-    private static object ExecuteAggregate(IEnumerable<object> source, QueryExecutionPlan plan)
+    private static object ExecuteAggregate(IEnumerable<object> source, QueryExecutionPlan plan
+    )
     {
         var seed = plan.AggregateSeed;
         var func = plan.AggregateFunc!;
@@ -722,31 +725,8 @@ internal sealed class QueryOperationExecutor
         var innerEnumerable = plan.InnerSequence as System.Collections.IEnumerable
             ?? throw new InvalidOperationException("Inner sequence must be enumerable");
 
-        // Determine if this is a Join or GroupJoin by inspecting the result selector's parameter types
-        // Both Join and GroupJoin have result selectors with 2 *logical* parameters:
-        //   Join:      Func<TOuter, TInner, TResult>
-        //   GroupJoin: Func<TOuter, IEnumerable<TInner>, TResult>
-        // 
-        // However, compiled lambdas may have a compiler-generated Closure parameter at index 0.
-        // We need to check if the second *logical* parameter (the inner sequence parameter) is IEnumerable<T>.
-        
-        var parameters = resultSelector.Method.GetParameters();
-        bool isGroupJoin = false;
-        
-        // Find the second logical parameter (skipping Closure if present)
-        // Compiled lambdas: [Closure, TOuter, TInner/IEnumerable<TInner>]
-        // We need to check the last parameter type
-        if (parameters.Length >= 2)
-        {
-            // The second logical parameter is either:
-            // - parameters[1] if no Closure (2 parameters total)
-            // - parameters[2] if Closure is present (3 parameters total)
-            var secondLogicalParam = parameters.Length == 2 ? parameters[1] : parameters[^1];
-            
-            // Check if it's IEnumerable<T> (GroupJoin) or a single element (Join)
-            isGroupJoin = secondLogicalParam.ParameterType.IsGenericType &&
-                         secondLogicalParam.ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>);
-        }
+        // Use shared helper for Join vs GroupJoin detection
+        bool isGroupJoin = JoinDetectionHelper.IsGroupJoin(resultSelector);
 
         var methodName = isGroupJoin ? nameof(Enumerable.GroupJoin) : nameof(Enumerable.Join);
         var joinMethod = typeof(Enumerable).GetMethods()
@@ -1469,17 +1449,8 @@ internal sealed class QueryOperationExecutor
         var innerEnumerable = joinData.InnerSequence as System.Collections.IEnumerable
                               ?? throw new InvalidOperationException("Inner sequence must be enumerable");
 
-        // Determine if this is a Join or GroupJoin by inspecting result selector parameter types
-        var parameters = resultSelector.Method.GetParameters();
+        // Use the join classification determined during query translation
         bool isGroupJoin = joinData.IsGroupJoin;
-        
-        // Double-check by inspecting parameter types (handles compiler-generated Closure parameter)
-        if (parameters.Length >= 2)
-        {
-            var secondLogicalParam = parameters.Length == 2 ? parameters[1] : parameters[^1];
-            isGroupJoin = secondLogicalParam.ParameterType.IsGenericType &&
-                         secondLogicalParam.ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>);
-        }
 
         var methodName = isGroupJoin ? nameof(Enumerable.GroupJoin) : nameof(Enumerable.Join);
         var joinMethod = typeof(Enumerable).GetMethods()
@@ -1503,18 +1474,19 @@ internal sealed class QueryOperationExecutor
 
     /// <summary>
     /// Gets the value of a property by name from the specified item.
+    /// Uses span-based property access for zero-allocation lookups with global shared cache.
     /// </summary>
     /// <typeparam name="T">Type of the item.</typeparam>
     /// <param name="item">The item to get the property value from.</param>
     /// <param name="propertyPath">The property name or path.</param>
     /// <returns>The property value, or null if not found.</returns>
-    private static object? GetPropertyValue<T>(T? item, string propertyPath)
+    private static object? GetPropertyValue<T>(T? item, ReadOnlySpan<char> propertyPath)
     {
         if (item is null)
             return null;
 
-        var property = typeof(T).GetProperty(propertyPath);
-        return property?.GetValue(item);
+        // Use static SpanPropertyAccessor for global cached, zero-allocation property access
+        return Implementations.SpanPropertyAccessor.GetValue(item, propertyPath);
     }
 
     #endregion
