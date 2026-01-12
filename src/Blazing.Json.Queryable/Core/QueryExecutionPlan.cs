@@ -349,11 +349,13 @@ public class QueryExecutionPlan
     }
 
     // Optimization: Cache validation state to avoid repeated validation
-    private bool _validated;
+    // Thread-safe: volatile ensures visibility across threads
+    private volatile bool _validated;
 
     /// <summary>
     /// Validates the execution plan for consistency.
     /// Validation is cached after first successful call to avoid repeated checks.
+    /// Thread-safe: Uses volatile field to ensure proper memory visibility.
     /// </summary>
     /// <exception cref="InvalidQueryException">Thrown when plan is invalid</exception>
     public void Validate()

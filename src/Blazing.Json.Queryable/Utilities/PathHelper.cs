@@ -90,11 +90,11 @@ internal static class PathHelper
             
             // Check for function calls
             if (c == '(' || 
-                (i + 6 < jsonPath.Length && jsonPath.Slice(i, 7) is "length(") ||
-                (i + 5 < jsonPath.Length && jsonPath.Slice(i, 6) is "count(") ||
-                (i + 5 < jsonPath.Length && jsonPath.Slice(i, 6) is "match(") ||
-                (i + 6 < jsonPath.Length && jsonPath.Slice(i, 7) is "search(") ||
-                (i + 5 < jsonPath.Length && jsonPath.Slice(i, 6) is "value("))
+                (i + 7 <= jsonPath.Length && jsonPath.Slice(i, 7) is "length(") ||
+                (i + 6 <= jsonPath.Length && jsonPath.Slice(i, 6) is "count(") ||
+                (i + 6 <= jsonPath.Length && jsonPath.Slice(i, 6) is "match(") ||
+                (i + 7 <= jsonPath.Length && jsonPath.Slice(i, 7) is "search(") ||
+                (i + 6 <= jsonPath.Length && jsonPath.Slice(i, 6) is "value("))
             {
                 return false;
             }
