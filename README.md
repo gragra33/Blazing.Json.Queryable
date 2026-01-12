@@ -66,7 +66,7 @@
 
 ## Overview
 
-**Blazing.Json.Queryable** is a high-performance LINQ provider for JSON data that processes JSON directly without full deserialization. Unlike traditional approaches that load entire JSON files into memory and then apply LINQ queries, this library processes JSON as a stream, providing dramatic performance improvements and memory efficiency for medium to large JSON files.
+**Blazing.Json.Queryable** is a high-performance LINQ provider for JSON data that processes JSON directly without full deserialization. Unlike traditional approaches that load entire JSON files into memory, convert to objects, and then apply LINQ queries, this library processes JSON as a stream, providing dramatic performance improvements and memory efficiency for medium to large JSON files.
 
 This custom JSON LINQ provider supports standard string, UTF-8, streaming, and RFC 9535 compliant JSONPath operations powered by **[Blazing.Json.JSONPath](https://github.com/gragra33/Blazing.Json.JSONPath)**. Whether you're working with multi-megabyte API responses, large data exports, or log files, Blazing.Json.Queryable enables you to query JSON data efficiently with the familiar LINQ syntax you already know.
 
