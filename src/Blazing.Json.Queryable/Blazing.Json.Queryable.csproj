@@ -22,7 +22,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>
-		V1.1.1 - 13 January, 2026 - Streaming Restoration for Simple Wildcard Paths
+		V1.1.1 - 12 January, 2026 - Streaming Restoration for Simple Wildcard Paths
 		- Restored true streaming for simple wildcard-only JSONPath expressions
 
 		V1.1.0 - 12 January, 2026 - RFC 9535 JSONPath Support
