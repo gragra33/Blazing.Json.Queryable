@@ -160,7 +160,7 @@ while (true)
     }
     
     Console.WriteLine("Press any key to continue...");
-    //Console.ReadKey();
-    Console.ReadLine(); // used during debugging
+    Console.ReadKey();
+    //Console.ReadLine(); // used during debugging
     Console.Clear();
 }
