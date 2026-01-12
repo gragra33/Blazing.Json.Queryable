@@ -898,7 +898,7 @@ public sealed class QueryTranslator
                 }
             }
             
-            // If OrderBy comes before Join in the list (after Join in the query)
+            // If OrderBy comes after Join in the query (OrderBy appears before Join in the operations list due to reverse order)
             if (orderByIndex >= 0 && joinIndex >= 0 && orderByIndex < joinIndex)
             {
                 HasOperationsAfterProjection = true;

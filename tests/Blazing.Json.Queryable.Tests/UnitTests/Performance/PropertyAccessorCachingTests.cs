@@ -11,22 +11,27 @@ namespace Blazing.Json.Queryable.Tests.UnitTests.Performance;
 /// </summary>
 public class PropertyAccessorCachingTests
 {
+    public PropertyAccessorCachingTests()
+    {
+        // Clear cache before each test for isolation
+        SpanPropertyAccessor.ClearCache();
+    }
+
     [Fact]
     public void SpanPropertyAccessor_CachesPropertyInfo_NoRepeatAllocations()
     {
         // Arrange
-        var accessor = new SpanPropertyAccessor();
         var person = TestData.GetSmallPersonDataset().First();
         var propertyName = "Name".AsSpan();
 
         // Act - First access (cache miss)
-        var value1 = accessor.GetValue(person, propertyName);
+        var value1 = SpanPropertyAccessor.GetValue(person, propertyName);
 
         // Act - Second access (cache hit - should not allocate)
-        var value2 = accessor.GetValue(person, propertyName);
+        var value2 = SpanPropertyAccessor.GetValue(person, propertyName);
 
         // Act - Third access (cache hit - should not allocate)
-        var value3 = accessor.GetValue(person, propertyName);
+        var value3 = SpanPropertyAccessor.GetValue(person, propertyName);
 
         // Assert - All values should be identical
         value1.ShouldBe(person.Name);
@@ -41,20 +46,19 @@ public class PropertyAccessorCachingTests
     public void SpanPropertyAccessor_MultipleProperties_EachCachedIndependently()
     {
         // Arrange
-        var accessor = new SpanPropertyAccessor();
         var person = TestData.GetSmallPersonDataset().First();
 
         // Act - Access different properties
-        var name = accessor.GetValue(person, "Name".AsSpan());
-        var age = accessor.GetValue(person, "Age".AsSpan());
-        var city = accessor.GetValue(person, "City".AsSpan());
-        var isActive = accessor.GetValue(person, "IsActive".AsSpan());
+        var name = SpanPropertyAccessor.GetValue(person, "Name".AsSpan());
+        var age = SpanPropertyAccessor.GetValue(person, "Age".AsSpan());
+        var city = SpanPropertyAccessor.GetValue(person, "City".AsSpan());
+        var isActive = SpanPropertyAccessor.GetValue(person, "IsActive".AsSpan());
 
         // Act - Access same properties again (should be cached)
-        var name2 = accessor.GetValue(person, "Name".AsSpan());
-        var age2 = accessor.GetValue(person, "Age".AsSpan());
-        var city2 = accessor.GetValue(person, "City".AsSpan());
-        var isActive2 = accessor.GetValue(person, "IsActive".AsSpan());
+        var name2 = SpanPropertyAccessor.GetValue(person, "Name".AsSpan());
+        var age2 = SpanPropertyAccessor.GetValue(person, "Age".AsSpan());
+        var city2 = SpanPropertyAccessor.GetValue(person, "City".AsSpan());
+        var isActive2 = SpanPropertyAccessor.GetValue(person, "IsActive".AsSpan());
 
         // Assert
         name.ShouldBe(person.Name);
@@ -75,18 +79,17 @@ public class PropertyAccessorCachingTests
     public void SpanPropertyAccessor_RepeatedAccess_ConstantTime()
     {
         // Arrange
-        var accessor = new SpanPropertyAccessor();
         var person = TestData.GetSmallPersonDataset().First();
         var propertyName = "Name".AsSpan();
 
         // Warm up cache
-        _ = accessor.GetValue(person, propertyName);
+        _ = SpanPropertyAccessor.GetValue(person, propertyName);
 
         // Act - Measure repeated cached access
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         for (int i = 0; i < 10000; i++)
         {
-            _ = accessor.GetValue(person, propertyName);
+            _ = SpanPropertyAccessor.GetValue(person, propertyName);
         }
         stopwatch.Stop();
 
@@ -102,16 +105,15 @@ public class PropertyAccessorCachingTests
     public void SpanPropertyAccessor_vs_StringPropertyAccessor_BothUseCache()
     {
         // Arrange
-        var accessor = new SpanPropertyAccessor();
         var person = TestData.GetSmallPersonDataset().First();
 
         // Act - Span-based access
-        var spanValue1 = accessor.GetValue(person, "Name".AsSpan());
-        var spanValue2 = accessor.GetValue(person, "Name".AsSpan()); // Cached
+        var spanValue1 = SpanPropertyAccessor.GetValue(person, "Name".AsSpan());
+        var spanValue2 = SpanPropertyAccessor.GetValue(person, "Name".AsSpan()); // Cached
 
         // Act - String-based convenience method
-        var stringValue1 = accessor.GetValueByName(person, "Name");
-        var stringValue2 = accessor.GetValueByName(person, "Name"); // Should also be cached
+        var stringValue1 = SpanPropertyAccessor.GetValueByName(person, "Name");
+        var stringValue2 = SpanPropertyAccessor.GetValueByName(person, "Name"); // Should also be cached
 
         // Assert
         spanValue1.ShouldBe(person.Name);
@@ -127,19 +129,18 @@ public class PropertyAccessorCachingTests
     public void SpanPropertyAccessor_CacheStability_AcrossMultipleTypes()
     {
         // Arrange
-        var accessor = new SpanPropertyAccessor();
         var person = TestData.GetSmallPersonDataset().First();
         var product = TestData.GetProductDataset().First();
 
         // Act - Access properties from different types
-        var personName = accessor.GetValue(person, "Name".AsSpan());
-        var productName = accessor.GetValue(product, "Name".AsSpan());
-        var personAge = accessor.GetValue(person, "Age".AsSpan());
-        var productPrice = accessor.GetValue(product, "Price".AsSpan());
+        var personName = SpanPropertyAccessor.GetValue(person, "Name".AsSpan());
+        var productName = SpanPropertyAccessor.GetValue(product, "Name".AsSpan());
+        var personAge = SpanPropertyAccessor.GetValue(person, "Age".AsSpan());
+        var productPrice = SpanPropertyAccessor.GetValue(product, "Price".AsSpan());
 
         // Act - Access again (should be cached)
-        var personName2 = accessor.GetValue(person, "Name".AsSpan());
-        var productName2 = accessor.GetValue(product, "Name".AsSpan());
+        var personName2 = SpanPropertyAccessor.GetValue(person, "Name".AsSpan());
+        var productName2 = SpanPropertyAccessor.GetValue(product, "Name".AsSpan());
 
         // Assert
         personName.ShouldBe(person.Name);
@@ -158,21 +159,20 @@ public class PropertyAccessorCachingTests
     public void SpanPropertyAccessor_HighVolumeAccess_MaintainsCacheEfficiency()
     {
         // Arrange
-        var accessor = new SpanPropertyAccessor();
         var people = TestData.GetMediumPersonDataset();
 
         // Warm up cache for all properties
         var firstPerson = people.First();
-        _ = accessor.GetValue(firstPerson, "Name".AsSpan());
-        _ = accessor.GetValue(firstPerson, "Age".AsSpan());
-        _ = accessor.GetValue(firstPerson, "City".AsSpan());
+        _ = SpanPropertyAccessor.GetValue(firstPerson, "Name".AsSpan());
+        _ = SpanPropertyAccessor.GetValue(firstPerson, "Age".AsSpan());
+        _ = SpanPropertyAccessor.GetValue(firstPerson, "City".AsSpan());
 
         // Act - High volume access across many objects
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         var totalAge = 0;
         foreach (var person in people)
         {
-            var age = accessor.GetValue(person, "Age".AsSpan());
+            var age = SpanPropertyAccessor.GetValue(person, "Age".AsSpan());
             totalAge += (int)age!;
         }
         stopwatch.Stop();

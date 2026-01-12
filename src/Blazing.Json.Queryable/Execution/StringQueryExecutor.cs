@@ -12,6 +12,12 @@ namespace Blazing.Json.Queryable.Execution;
 /// </summary>
 public sealed class StringQueryExecutor : IQueryExecutor
 {
+    // Cache default JsonSerializerOptions to avoid repeated allocation
+    private static readonly JsonSerializerOptions DefaultOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     private readonly ReadOnlyMemory<byte> _utf8Json;
     private readonly JsonSerializerOptions _options;
     private readonly QueryOperationExecutor _operations = new();
@@ -20,16 +26,13 @@ public sealed class StringQueryExecutor : IQueryExecutor
     /// Initializes a new instance of the <see cref="StringQueryExecutor"/> class with UTF-8 bytes.
     /// </summary>
     /// <param name="utf8Json">UTF-8 encoded JSON data.</param>
-    /// <param name="options">JSON serializer options. If null, uses case-insensitive property names.</param>
+    /// <param name="options">JSON serializer options. If null, uses cached default options.</param>
     public StringQueryExecutor(
         ReadOnlyMemory<byte> utf8Json,
         JsonSerializerOptions? options)
     {
         _utf8Json = utf8Json;
-        _options = options ?? new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
+        _options = options ?? DefaultOptions;
     }
 
     /// <summary>

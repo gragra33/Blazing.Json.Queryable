@@ -348,12 +348,19 @@ public class QueryExecutionPlan
         return SortPropertyPaths[index].Span;
     }
 
+    // Optimization: Cache validation state to avoid repeated validation
+    private bool _validated;
+
     /// <summary>
     /// Validates the execution plan for consistency.
+    /// Validation is cached after first successful call to avoid repeated checks.
     /// </summary>
     /// <exception cref="InvalidQueryException">Thrown when plan is invalid</exception>
     public void Validate()
     {
+        // Early exit if already validated (optimization for repeated executions)
+        if (_validated) return;
+
         // Validate predicates match filter paths
         if (FilterPropertyPaths?.Length > 0 && Predicates == null)
         {
@@ -435,5 +442,8 @@ public class QueryExecutionPlan
         {
             throw new InvalidQueryException("Partition count cannot be negative", "Validate");
         }
+
+        // Mark as validated
+        _validated = true;
     }
 }

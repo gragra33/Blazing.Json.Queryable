@@ -12,7 +12,7 @@
     <RootNamespace>Blazing.Json.Queryable.Samples</RootNamespace>
     <Description>Sample application demonstrating Blazing.Json.Queryable features including basic queries, streaming, UTF-8 processing, JSONPath, and performance comparisons</Description>
     <Authors>Graeme Grant</Authors>
-    <Copyright>Copyright � 2026 Graeme Grant. All rights reserved.</Copyright>
+    <Copyright>Copyright (c) 2026 Graeme Grant. All rights reserved.</Copyright>
     
     <!-- Not packaged - samples are for demonstration only -->
     <IsPackable>false</IsPackable>

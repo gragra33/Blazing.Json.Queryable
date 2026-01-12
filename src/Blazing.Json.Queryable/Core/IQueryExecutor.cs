@@ -59,7 +59,7 @@ public interface IQueryExecutor
     ///     [EnumeratorCancellation] CancellationToken cancellationToken = default)
     /// {
     ///     // ⚠️ CANNOT use stackalloc across await
-    ///     // ✅ Use ArrayPool instead
+    ///     // Use ArrayPool instead
     ///     byte[] buffer = ArrayPool&lt;byte&gt;.Shared.Rent(4096);
     ///     try
     ///     {
@@ -68,10 +68,10 @@ public interface IQueryExecutor
     ///         {
     ///             cancellationToken.ThrowIfCancellationRequested();
     ///             
-    ///             // ✅ Create reader locally (ref struct on stack)
+    ///             // Create reader locally (ref struct on stack)
     ///             var reader = new Utf8JsonReader(buffer.AsSpan(0, bytesRead));
     ///             
-    ///             // ✅ Process synchronously (Utf8JsonReader limitation)
+    ///             // Process synchronously (Utf8JsonReader limitation)
     ///             foreach (var item in ProcessChunk(ref reader, plan))
     ///             {
     ///                 yield return item;
@@ -80,7 +80,7 @@ public interface IQueryExecutor
     ///     }
     ///     finally
     ///     {
-    ///         // ✅ CRITICAL: Return buffer to pool
+    ///         // CRITICAL: Return buffer to pool
     ///         ArrayPool&lt;byte&gt;.Shared.Return(buffer);
     ///     }
     /// }

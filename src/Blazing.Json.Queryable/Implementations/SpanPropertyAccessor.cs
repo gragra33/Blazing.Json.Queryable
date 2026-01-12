@@ -5,14 +5,33 @@ using Blazing.Json.Queryable.Exceptions;
 namespace Blazing.Json.Queryable.Implementations;
 
 /// <summary>
-/// Implementation of <see cref="Core.IPropertyAccessor"/> using reflection with span-based property name lookups.
-/// Caches <see cref="PropertyInfo"/> instances for optimal performance.
+/// Provides span-based property access with reflection and PropertyInfo caching.
+/// This is a static class with a shared global cache for maximum efficiency across the entire application.
 /// </summary>
-public sealed class SpanPropertyAccessor : Core.IPropertyAccessor
+/// <remarks>
+/// <para>
+/// <strong>Zero-Allocation Design:</strong> Uses ReadOnlySpan&lt;char&gt; for property names
+/// to eliminate string allocations, achieving zero-allocation property lookups when combined
+/// with PropertyInfo caching.
+/// </para>
+/// <para>
+/// <strong>Global Cache:</strong> All property lookups share a single global cache, maximizing
+/// efficiency across the entire application. The cache is thread-safe and uses ConcurrentDictionary.
+/// </para>
+/// <para>
+/// <strong>Method Priority:</strong>
+/// <list type="number">
+/// <item><strong>Preferred:</strong> <c>GetValue(object, ReadOnlySpan&lt;char&gt;)</c> - Zero allocation</item>
+/// <item><strong>Type Info:</strong> <c>GetPropertyType(Type, ReadOnlySpan&lt;char&gt;)</c> - For type inspection</item>
+/// <item><strong>Convenience:</strong> <c>GetValueByName(object, string)</c> - When you already have a string</item>
+/// </list>
+/// </para>
+/// </remarks>
+public static class SpanPropertyAccessor
 {
-    // Cache PropertyInfo by type and property name for fast repeated access
+    // Global shared cache for PropertyInfo lookups across all calls
     // Key: (Type, PropertyName), Value: PropertyInfo
-    private readonly ConcurrentDictionary<(Type, string), PropertyInfo?> _propertyCache = new();
+    private static readonly ConcurrentDictionary<(Type, string), PropertyInfo?> _propertyCache = new();
 
     /// <summary>
     /// Gets property value using span-based property name (zero allocation).
@@ -26,10 +45,10 @@ public sealed class SpanPropertyAccessor : Core.IPropertyAccessor
     /// <exception cref="ArgumentException">Thrown when <paramref name="propertyName"/> is empty.</exception>
     /// <remarks>
     /// This method uses span-based property name lookup to avoid string allocations.
-    /// <see cref="PropertyInfo"/> instances are cached for repeated access.
+    /// <see cref="PropertyInfo"/> instances are cached globally for maximum reuse.
     /// For best performance, pass property names as ReadOnlySpan&lt;char&gt; directly.
     /// </remarks>
-    public object? GetValue(object obj, ReadOnlySpan<char> propertyName)
+    public static object? GetValue(object obj, ReadOnlySpan<char> propertyName)
     {
         ArgumentNullException.ThrowIfNull(obj);
         
@@ -60,7 +79,7 @@ public sealed class SpanPropertyAccessor : Core.IPropertyAccessor
     /// <returns>The property type.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="objectType"/> is null.</exception>
     /// <exception cref="PropertyAccessException">Thrown when property is not found.</exception>
-    public Type GetPropertyType(Type objectType, ReadOnlySpan<char> propertyName)
+    public static Type GetPropertyType(Type objectType, ReadOnlySpan<char> propertyName)
     {
         ArgumentNullException.ThrowIfNull(objectType);
 
@@ -79,7 +98,7 @@ public sealed class SpanPropertyAccessor : Core.IPropertyAccessor
     /// <param name="propertyName">The property name as a string.</param>
     /// <returns>The property value or null if not found.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="obj"/> or <paramref name="propertyName"/> is null.</exception>
-    public object? GetValueByName(object obj, string propertyName)
+    public static object? GetValueByName(object obj, string propertyName)
     {
         ArgumentNullException.ThrowIfNull(obj);
         ArgumentNullException.ThrowIfNull(propertyName);
@@ -95,11 +114,12 @@ public sealed class SpanPropertyAccessor : Core.IPropertyAccessor
     /// <param name="type">The type to inspect.</param>
     /// <param name="propertyName">The property name as a span.</param>
     /// <returns><see cref="PropertyInfo"/> if found, null otherwise.</returns>
-    private PropertyInfo? GetPropertyInfoInternal(Type type, ReadOnlySpan<char> propertyName)
+    private static PropertyInfo? GetPropertyInfoInternal(Type type, ReadOnlySpan<char> propertyName)
     {
         // Convert span to string for cache key (necessary for dictionary lookup)
-        // This is the only allocation in this path, and it's cached
-        string propertyNameString = propertyName.ToString();
+        // Use string.Create to minimize allocations when converting from span
+        string propertyNameString = string.Create(propertyName.Length, propertyName, 
+            static (chars, source) => source.CopyTo(chars));
 
         var cacheKey = (type, propertyNameString);
 
@@ -139,13 +159,13 @@ public sealed class SpanPropertyAccessor : Core.IPropertyAccessor
     /// Gets the current number of cached property lookups.
     /// Useful for diagnostics and testing.
     /// </summary>
-    public int CacheCount => _propertyCache.Count;
+    public static int CacheCount => _propertyCache.Count;
 
     /// <summary>
     /// Clears the property info cache.
     /// Useful for testing or memory management in long-running applications.
     /// </summary>
-    public void ClearCache()
+    public static void ClearCache()
     {
         _propertyCache.Clear();
     }

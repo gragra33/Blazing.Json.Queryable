@@ -11,11 +11,10 @@ namespace Blazing.Json.Queryable.Tests.UnitTests.Evaluators;
 /// </summary>
 public class SpanPropertyAccessorTests
 {
-    private readonly SpanPropertyAccessor _accessor;
-
     public SpanPropertyAccessorTests()
     {
-        _accessor = new SpanPropertyAccessor();
+        // Clear cache before each test for isolation
+        SpanPropertyAccessor.ClearCache();
     }
 
     [Fact]
@@ -25,8 +24,8 @@ public class SpanPropertyAccessorTests
         var person = new Person { Name = "Alice", Age = 25 };
 
         // Act
-        var nameValue = _accessor.GetValue(person, "Name".AsSpan());
-        var ageValue = _accessor.GetValue(person, "Age".AsSpan());
+        var nameValue = SpanPropertyAccessor.GetValue(person, "Name".AsSpan());
+        var ageValue = SpanPropertyAccessor.GetValue(person, "Age".AsSpan());
 
         // Assert
         nameValue.ShouldBe("Alice");
@@ -40,7 +39,7 @@ public class SpanPropertyAccessorTests
         var person = new Person { Name = "Bob" };
 
         // Act
-        var value = _accessor.GetValue(person, "NonExistent".AsSpan());
+        var value = SpanPropertyAccessor.GetValue(person, "NonExistent".AsSpan());
 
         // Assert
         value.ShouldBeNull();
@@ -53,10 +52,10 @@ public class SpanPropertyAccessorTests
         var person = new Person { Name = "Charlie" };
 
         // Act
-        _accessor.GetValue(person, "Name".AsSpan());
-        var initialCacheCount = _accessor.CacheCount;
-        _accessor.GetValue(person, "Name".AsSpan());
-        var finalCacheCount = _accessor.CacheCount;
+        SpanPropertyAccessor.GetValue(person, "Name".AsSpan());
+        var initialCacheCount = SpanPropertyAccessor.CacheCount;
+        SpanPropertyAccessor.GetValue(person, "Name".AsSpan());
+        var finalCacheCount = SpanPropertyAccessor.CacheCount;
 
         // Assert
         initialCacheCount.ShouldBe(1);
@@ -70,7 +69,7 @@ public class SpanPropertyAccessorTests
         var person = new Person { Name = "Diana" };
 
         // Act
-        var value = _accessor.GetValue(person, "name".AsSpan()); // lowercase
+        var value = SpanPropertyAccessor.GetValue(person, "name".AsSpan()); // lowercase
 
         // Assert
         value.ShouldBe("Diana");
@@ -83,8 +82,8 @@ public class SpanPropertyAccessorTests
         var person = new Person { Name = "Eve", City = "Boston" };
 
         // Act
-        var nameValue = _accessor.GetValueByName(person, "Name");
-        var cityValue = _accessor.GetValueByName(person, "City");
+        var nameValue = SpanPropertyAccessor.GetValueByName(person, "Name");
+        var cityValue = SpanPropertyAccessor.GetValueByName(person, "City");
 
         // Assert
         nameValue.ShouldBe("Eve");
@@ -98,22 +97,22 @@ public class SpanPropertyAccessorTests
         var person = new Person();
 
         // Act & Assert
-        Should.Throw<ArgumentNullException>(() => _accessor.GetValueByName(person, null!));
+        Should.Throw<ArgumentNullException>(() => SpanPropertyAccessor.GetValueByName(person, null!));
     }
 
     [Fact]
     public void GetValue_WithNullObject_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Should.Throw<ArgumentNullException>(() => _accessor.GetValue(null!, "Name".AsSpan()));
+        Should.Throw<ArgumentNullException>(() => SpanPropertyAccessor.GetValue(null!, "Name".AsSpan()));
     }
 
     [Fact]
     public void GetPropertyType_WithValidProperty_ReturnsCorrectType()
     {
         // Act
-        var nameType = _accessor.GetPropertyType(typeof(Person), "Name".AsSpan());
-        var ageType = _accessor.GetPropertyType(typeof(Person), "Age".AsSpan());
+        var nameType = SpanPropertyAccessor.GetPropertyType(typeof(Person), "Name".AsSpan());
+        var ageType = SpanPropertyAccessor.GetPropertyType(typeof(Person), "Age".AsSpan());
 
         // Assert
         nameType.ShouldBe(typeof(string));
@@ -125,7 +124,7 @@ public class SpanPropertyAccessorTests
     {
         // Act & Assert
         var exception = Should.Throw<PropertyAccessException>(() => 
-            _accessor.GetPropertyType(typeof(Person), "NonExistent".AsSpan()));
+            SpanPropertyAccessor.GetPropertyType(typeof(Person), "NonExistent".AsSpan()));
         
         exception.PropertyName.ShouldBe("NonExistent");
         exception.TargetType.ShouldBe(typeof(Person));
@@ -149,13 +148,22 @@ public class SpanPropertyAccessorTests
     {
         // Arrange
         var person = new Person { Name = "Test" };
-        _accessor.GetValue(person, "Name".AsSpan());
+        
+        // Record initial cache count
+        var initialCacheCount = SpanPropertyAccessor.CacheCount;
+        
+        // Add a property to the cache
+        SpanPropertyAccessor.GetValue(person, "Name".AsSpan());
+        var cacheAfterGet = SpanPropertyAccessor.CacheCount;
 
         // Act
-        _accessor.ClearCache();
+        SpanPropertyAccessor.ClearCache();
 
         // Assert
-        _accessor.CacheCount.ShouldBe(0);
+        // Cache should have grown by at least 1 after GetValue
+        cacheAfterGet.ShouldBeGreaterThan(initialCacheCount);
+        // Cache should be empty after clear
+        SpanPropertyAccessor.CacheCount.ShouldBe(0);
     }
 
     [Fact]
@@ -165,7 +173,7 @@ public class SpanPropertyAccessorTests
         var person = new Person { City = "Seattle" };
 
         // Act
-        var value = _accessor.GetValue(person, "City".AsSpan());
+        var value = SpanPropertyAccessor.GetValue(person, "City".AsSpan());
 
         // Assert
         value.ShouldBe("Seattle");
@@ -178,7 +186,7 @@ public class SpanPropertyAccessorTests
         var person = new Person { City = null };
 
         // Act
-        var value = _accessor.GetValue(person, "City".AsSpan());
+        var value = SpanPropertyAccessor.GetValue(person, "City".AsSpan());
 
         // Assert
         value.ShouldBeNull();
@@ -193,20 +201,20 @@ public class SpanPropertyAccessorTests
         var person = new Person { Name = "Test", Age = 30 };
         
         // Warm up cache
-        _accessor.GetValue(person, "Name".AsSpan());
-        _accessor.GetValue(person, "Age".AsSpan());
+        SpanPropertyAccessor.GetValue(person, "Name".AsSpan());
+        SpanPropertyAccessor.GetValue(person, "Age".AsSpan());
         
-        var initialCacheCount = _accessor.CacheCount;
+        var initialCacheCount = SpanPropertyAccessor.CacheCount;
 
         // Act - Call multiple times with span-based access
         for (int i = 0; i < 100; i++)
         {
-            _accessor.GetValue(person, "Name".AsSpan());
-            _accessor.GetValue(person, "Age".AsSpan());
+            SpanPropertyAccessor.GetValue(person, "Name".AsSpan());
+            SpanPropertyAccessor.GetValue(person, "Age".AsSpan());
         }
 
         // Assert - Cache should remain stable (no new allocations for property lookups)
-        _accessor.CacheCount.ShouldBe(initialCacheCount);
+        SpanPropertyAccessor.CacheCount.ShouldBe(initialCacheCount);
     }
 
     [Fact]
@@ -216,12 +224,12 @@ public class SpanPropertyAccessorTests
         var person = new Person { Name = "Test" };
 
         // Act - Access via span
-        var spanValue = _accessor.GetValue(person, "Name".AsSpan());
-        var spanCacheCount = _accessor.CacheCount;
+        var spanValue = SpanPropertyAccessor.GetValue(person, "Name".AsSpan());
+        var spanCacheCount = SpanPropertyAccessor.CacheCount;
 
         // Access via string method (should use same cache)
-        var stringValue = _accessor.GetValueByName(person, "Name");
-        var stringCacheCount = _accessor.CacheCount;
+        var stringValue = SpanPropertyAccessor.GetValueByName(person, "Name");
+        var stringCacheCount = SpanPropertyAccessor.CacheCount;
 
         // Assert
         spanValue.ShouldBe("Test");
@@ -233,12 +241,12 @@ public class SpanPropertyAccessorTests
     public void GetPropertyType_WithSpan_CachesTypeInfo()
     {
         // Arrange & Act - First call
-        var type1 = _accessor.GetPropertyType(typeof(Person), "Name".AsSpan());
-        var cacheCount1 = _accessor.CacheCount;
+        var type1 = SpanPropertyAccessor.GetPropertyType(typeof(Person), "Name".AsSpan());
+        var cacheCount1 = SpanPropertyAccessor.CacheCount;
 
         // Second call - should use cache
-        var type2 = _accessor.GetPropertyType(typeof(Person), "Name".AsSpan());
-        var cacheCount2 = _accessor.CacheCount;
+        var type2 = SpanPropertyAccessor.GetPropertyType(typeof(Person), "Name".AsSpan());
+        var cacheCount2 = SpanPropertyAccessor.CacheCount;
 
         // Assert
         type1.ShouldBe(typeof(string));
@@ -261,7 +269,7 @@ public class SpanPropertyAccessorTests
         };
 
         // Act
-        var addressValue = _accessor.GetValue(person, "Address".AsSpan());
+        var addressValue = SpanPropertyAccessor.GetValue(person, "Address".AsSpan());
 
         // Assert
         addressValue.ShouldNotBeNull();
@@ -282,20 +290,24 @@ public class SpanPropertyAccessorTests
             Email = "alice@example.com"
         };
 
-        // Act
-        _accessor.GetValue(person, "Name".AsSpan());
-        var cacheAfterName = _accessor.CacheCount;
-        
-        _accessor.GetValue(person, "Age".AsSpan());
-        var cacheAfterAge = _accessor.CacheCount;
-        
-        _accessor.GetValue(person, "City".AsSpan());
-        var cacheAfterCity = _accessor.CacheCount;
+        // Record baseline BEFORE accessing any properties in this test
+        var baselineCount = SpanPropertyAccessor.CacheCount;
 
-        // Assert - Cache should grow with each unique property
-        cacheAfterName.ShouldBe(1);
-        cacheAfterAge.ShouldBe(2);
-        cacheAfterCity.ShouldBe(3);
+        // Act - Access properties and measure cache growth
+        SpanPropertyAccessor.GetValue(person, "Name".AsSpan());
+        var growthAfterName = SpanPropertyAccessor.CacheCount - baselineCount;
+        
+        SpanPropertyAccessor.GetValue(person, "Age".AsSpan());
+        var growthAfterAge = SpanPropertyAccessor.CacheCount - baselineCount;
+        
+        SpanPropertyAccessor.GetValue(person, "City".AsSpan());
+        var growthAfterCity = SpanPropertyAccessor.CacheCount - baselineCount;
+
+        // Assert - Cache should grow by exactly 1 for each NEW unique property accessed
+        // This is resilient to concurrent test execution because we measure relative growth
+        growthAfterName.ShouldBe(1, "Cache should grow by 1 after accessing Name");
+        growthAfterAge.ShouldBe(2, "Cache should grow by 2 after accessing Name and Age");
+        growthAfterCity.ShouldBe(3, "Cache should grow by 3 after accessing Name, Age, and City");
     }
 
     [Fact]
@@ -306,14 +318,14 @@ public class SpanPropertyAccessorTests
 
         // Act & Assert
         Should.Throw<ArgumentException>(() => 
-            _accessor.GetValue(person, []));
+            SpanPropertyAccessor.GetValue(person, []));
     }
 
     [Fact]
     public void GetPropertyType_WithNullableProperty_ReturnsNullableType()
     {
         // Act
-        var cityType = _accessor.GetPropertyType(typeof(Person), "City".AsSpan());
+        var cityType = SpanPropertyAccessor.GetPropertyType(typeof(Person), "City".AsSpan());
 
         // Assert
         cityType.ShouldBe(typeof(string)); // City is string? but reflection returns string

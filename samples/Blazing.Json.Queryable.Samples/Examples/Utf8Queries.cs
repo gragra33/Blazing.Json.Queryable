@@ -1,4 +1,5 @@
 ﻿using Blazing.Json.Queryable.Providers;
+using Blazing.Json.Queryable.Samples.Models;
 using System.Diagnostics;
 using System.Text;
 
@@ -169,18 +170,3 @@ public static class Utf8Queries
         Console.WriteLine();
     }
 }
-
-/// <summary>
-/// Product model for sample queries.
-/// </summary>
-public record Product(int ProductId, string Name, string Category, decimal Price, int Stock, double Rating);
-
-/// <summary>
-/// Order model for sample queries.
-/// </summary>
-public record Order(int OrderId, int CustomerId, string ProductName, int Quantity, decimal Price, string OrderDate, string Status);
-
-/// <summary>
-/// Simple product model for demonstration.
-/// </summary>
-public record SimpleProduct(int Id, string Name, decimal Price, bool InStock);

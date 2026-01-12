@@ -11,6 +11,12 @@ namespace Blazing.Json.Queryable.Implementations;
 /// </summary>
 public sealed class SpanJsonDeserializer : Core.IJsonDeserializer
 {
+    // Cache default JsonSerializerOptions to avoid repeated allocation (HIGH IMPACT optimization)
+    private static readonly JsonSerializerOptions DefaultOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     private readonly JsonSerializerOptions _options;
 
     /// <summary>
@@ -19,19 +25,7 @@ public sealed class SpanJsonDeserializer : Core.IJsonDeserializer
     /// <param name="options">Optional <see cref="JsonSerializerOptions"/> for deserialization behavior.</param>
     public SpanJsonDeserializer(JsonSerializerOptions? options = null)
     {
-        if (options == null)
-        {
-            // Default options with case-insensitive matching
-            _options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-        }
-        else
-        {
-            // Use provided options as-is to respect user settings
-            _options = options;
-        }
+        _options = options ?? DefaultOptions;
     }
 
     /// <summary>

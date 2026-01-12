@@ -42,11 +42,9 @@
     - [Built-in Functions](#built-in-functions)
     - [Array Slicing](#array-slicing)
     - [Combining JSONPath with LINQ](#combining-jsonpath-with-linq)
-      - [Real-World Example: Department Workforce Analysis](#real-world-example-department-workforce-analysis)
-    - [Performance Best Practices](#performance-best-practices)
-    - [When to Use JSONPath vs LINQ Where](#when-to-use-jsonpath-vs-linq-where)
-    - [Learn More](#learn-more)
-  - [How It Works](#how-it-works)
+    - [Performance Best Practices (Memory & Speed)](#performance-best-practices-memory-speed)
+      - [Learn More](#learn-more)
+- [How It Works](#how-it-works)
     - [Execution Flow Example](#execution-flow-example)
   - [Performance Advantages](#performance-advantages)
     - [Real-World Performance Comparison](#real-world-performance-comparison)
@@ -60,6 +58,7 @@
   - [Give a ⭐](#give-a)
   - [Support](#support)
   - [History](#history)
+    - [V1.1.1 - 12 January, 2026](#v1.1.1-12-january-2026)
     - [V1.1.0 - 12 January, 2026](#v1.1.0-12-january-2026)
     - [V1.0.0 - 11 January, 2026](#v1.0.0-11-january-2026)
 
@@ -73,15 +72,15 @@ This custom JSON LINQ provider supports standard string, UTF-8, streaming, and R
 
 ## Key Features
 
-- ✅ **Direct JSON Processing**: Query JSON without full deserialization
-- ✅ **Memory Efficient**: Process files larger than available RAM
-- ✅ **Early Termination**: Stop reading after finding required results (Take, First, Any)
-- ✅ **Streaming Support**: Native `IAsyncEnumerable<T>` for real-time processing
-- ✅ **UTF-8 Native**: Zero-allocation UTF-8 processing with Span\<T\>
-- ✅ **RFC 9535 JSONPath**: Full RFC 9535 compliance with filters, functions, and slicing via [Blazing.Json.JSONPath](https://github.com/gragra33/Blazing.Json.JSONPath)
-- ✅ **Full LINQ**: Comprehensive LINQ method support (60+ operations)
-- ✅ **.NET 10 Async LINQ**: Built-in async LINQ with async predicates and transformations
-- ✅ **Multiple Input Formats**: String, Stream, UTF-8 bytes, and more
+- **Direct JSON Processing**: Query JSON without full deserialization
+- **Memory Efficient**: Process files larger than available RAM
+- **Early Termination**: Stop reading after finding required results (Take, First, Any)
+- **Streaming Support**: Native `IAsyncEnumerable<T>` for real-time processing
+- **UTF-8 Native**: Zero-allocation UTF-8 processing with Span\<T\>
+- **RFC 9535 JSONPath**: Full RFC 9535 compliance with filters, functions, and slicing via [Blazing.Json.JSONPath](https://github.com/gragra33/Blazing.Json.JSONPath)
+- **Full LINQ**: Comprehensive LINQ method support (60+ operations)
+- **.NET 10 Async LINQ**: Built-in async LINQ with async predicates and transformations
+- **Multiple Input Formats**: String, Stream, UTF-8 bytes, and more
 
 ## Why Choose Blazing.Json.Queryable?
 
@@ -121,7 +120,7 @@ var results = await JsonQueryable<Person>.FromStream(stream)
 
 ### When to Use Each Approach
 
-✅ **Use Blazing.Json.Queryable When:**
+**Use Blazing.Json.Queryable When:**
 - Files are **> 10 MB**
 - You need **early termination** (Take, First, Any)
 - Working in **memory-constrained environments**
@@ -129,7 +128,7 @@ var results = await JsonQueryable<Person>.FromStream(stream)
 - Building **async/streaming APIs**
 - Need **real-time data processing**
 
-✅ **Use Traditional JsonSerializer + LINQ When:**
+**Use Traditional JsonSerializer + LINQ When:**
 - Files are **< 1 MB**
 - You need **all data** (no early termination)
 - **Simplicity** is the priority
@@ -810,19 +809,85 @@ Department workforce analysis [MIXED JSONPATH + LINQ]:
 - **LINQ Operations**: GroupBy, aggregations, sorting on filtered set
 - **Result**: Minimal memory usage, type-safe operations, optimal performance
 
-### Performance Best Practices
+### Performance Best Practices (Memory & Speed)
 
-**✅ DO: Use JSONPath for Selective Filtering**
+> [!WARNING]
+> **JSONPath Memory Considerations**: The RFC 9535 specification requires the entire JSON document to be loaded into memory as a `JsonDocument` for advanced JSONPath features. **Advanced filters, functions, and array slicing** (e.g., `$[?@.price < 100]`, `$[0:10]`, `length(@.name)`) will load the **entire document** before parsing, regardless of streaming.
+>
+> **Exception**: Simple wildcard-only paths (e.g., `$.data[*]`, `$.departments[*].employees[*]`) are handled differently by Blazing.Json.Queryable and **maintain true streaming** without loading the full document, even with multiple levels of nesting.
+
+#### Working with Large JSON Documents
+
+**Blazing.Json.JSONPath** requires the entire JSON document to be loaded into memory as a `JsonDocument` when using advanced RFC 9535 features:
+- **Filter expressions**: `$[?@.age > 25]`, `$[?@.price < 100 && @.inStock]`
+- **Array slicing**: `$[0:10]`, `$[2:5:2]`, `$[-3:]`
+- **Functions**: `length()`, `count()`, `match()`, `search()`, `value()`
+
+However, **simple wildcard-only paths** use streaming and maintain constant memory usage:
+- **Single-level wildcards**: `$.data[*]`, `$.users[*]`
+- **Multi-level wildcards**: `$.departments[*].employees[*]`, `$.organization[*].divisions[*].departments[*].employees[*]`
+
+**Memory Usage Guidelines:**
+- **Small documents (<1MB)**: No concerns - use any JSONPath feature
+- **Medium documents (1-100MB)**: Generally fine on modern systems - monitor memory usage
+- **Large documents (100MB-1GB)**: Use simple wildcard paths for streaming, avoid advanced filters. Use Linq with JSONPath simple wildcard-only paths instead
+- **Very large documents (>1GB)**: **Use simple wildcard paths only** - avoid advanced filters. Use Linq with JSONPath simple wildcard-only paths instead
+
+#### Best Practices for Large Documents
+
+**DO: Use Simple Wildcard Paths for True Streaming (All File Sizes)**
 ```csharp
-// GOOD: Pre-filter with JSONPath (1M → 500 items)
+// GOOD: True streaming with simple wildcard paths (constant memory)
+await using var stream = File.OpenRead("huge-file.json"); // 2GB file
+
+// Single-level wildcard
+var results1 = await JsonQueryable<Product>
+    .FromStream(stream, "$.data[*]")  // Simple wildcard - maintains streaming!
+    .Where(p => p.Price < 100 && p.InStock)  // LINQ filtering (streamed)
+    .Take(10)
+    .AsAsyncEnumerable()
+    .ToListAsync();
+
+// Multi-level wildcards - ALSO streams!
+var results2 = await JsonQueryable<Employee>
+    .FromStream(stream, "$.departments[*].employees[*]")  // Multi-level - still streams!
+    .Where(e => e.Salary > 60000)  // LINQ filtering (streamed)
+    .Take(10)
+    .AsAsyncEnumerable()
+    .ToListAsync();
+
+// Deep nesting - STILL streams!
+var results3 = await JsonQueryable<Employee>
+    .FromStream(stream, "$.organization[*].divisions[*].departments[*].employees[*]")
+    .Where(e => e.IsActive)  // LINQ filtering (streamed)
+    .Take(10)
+    .AsAsyncEnumerable()
+    .ToListAsync();
+
+// Memory: ~25MB (constant), processes 2GB file safely with ANY level of nesting
+```
+
+**DO: Use JSONPath Advanced Filters for Selective Filtering (Small/Medium Files)**
+```csharp
+// GOOD: Pre-filter with JSONPath advanced filters (100MB file, 1M → 500 items)
 var results = JsonQueryable<Product>
-    .FromString(largeJson, "$[?@.price < 100 && @.inStock == true]")
+    .FromString(mediumJson, "$[?@.price < 100 && @.inStock == true]")
     .OrderBy(p => p.Name)
     .Take(10)
     .ToList();
+// Memory: Loads 100MB + filters → ~25MB result (acceptable for medium files)
 ```
 
-**❌ DON'T: Use LINQ Where for Initial Filtering on Large Datasets**
+**❌ DON'T: Use Advanced JSONPath Filters on Very Large Files (>1GB)**
+```csharp
+// BAD: Advanced filter loads ENTIRE 2GB file into memory!
+var results = JsonQueryable<Product>
+    .FromString(hugeJson, "$[?@.price < 100]")  // Loads ALL 2GB!
+    .ToList();
+// Memory: 2GB+ (OutOfMemoryException risk!)
+```
+
+**❌ DON'T: Use LINQ Where for Initial Filtering on Large Datasets (1M+) Without JSONPath**
 ```csharp
 // BAD: Deserializes ALL 1M first, then filters
 var results = JsonQueryable<Product>
@@ -831,33 +896,31 @@ var results = JsonQueryable<Product>
     .OrderBy(p => p.Name)
     .Take(10)
     .ToList();
+// Memory: ~500MB (all objects deserialized before filtering)
 ```
 
-### When to Use JSONPath vs LINQ Where
+#### Streaming Strategy Summary
 
-| Scenario | Recommendation | Reason |
-|----------|----------------|--------|
-| **Filtering > 10% of data** | LINQ `Where` | Small dataset, LINQ is simpler |
-| **Filtering < 10% of data** | ✅ JSONPath filter | Avoid deserializing non-matches |
-| **Large files (> 10MB)** | ✅ JSONPath filter | Significant memory savings |
-| **Complex string operations** | ✅ JSONPath `match()`, `search()` | Optimized regex in JSON |
-| **Dynamic predicates** | LINQ `Where` | JSONPath is static string |
-| **Type-safe predicates** | LINQ `Where` | Compile-time safety |
-
-### Learn More
-
-**Blazing.Json.JSONPath** - The JSONPath engine powering this functionality:
-- **GitHub**: [https://github.com/gragra33/Blazing.Json.JSONPath](https://github.com/gragra33/Blazing.Json.JSONPath)
-- **NuGet**: [Blazing.Json.JSONPath Package](https://www.nuget.org/packages/Blazing.Json.JSONPath)
-- **RFC 9535 Spec**: [IETF RFC 9535](https://www.rfc-editor.org/rfc/rfc9535.html)
+| Document Size | Recommended Approach | JSONPath Pattern | Memory Impact |
+|--------------|---------------------|------------------|---------------|
+| **< 1MB** | Any JSONPath feature | `$[?@.price < 100]` or `$.data[*]` | Minimal |
+| **1-100MB** | Advanced filters (monitor) or simple wildcards | `$[?@.price < 100]` or `$.data[*]` | Document size + overhead OR constant |
+| **100MB-1GB** | **Simple wildcard paths (preferred)** | `$.data[*]` or `$.dept[*].emp[*]` | Constant (~25MB) |
+| **> 1GB** | **Simple wildcard paths (required)** | `$.data[*]` or `$.dept[*].emp[*]` | Constant (~25MB) |
 
 **Key Features**:
-- ✅ 100% RFC 9535 compliant
-- ✅ High-performance implementation
-- ✅ Full filter expression support
-- ✅ All standard built-in functions
-- ✅ Array slicing with step
-- ✅ I-Regexp (RFC 9485) regex support
+- 100% RFC 9535 compliant
+- High-performance implementation
+- Full filter expression support
+- All standard built-in functions
+- Array slicing with step
+- I-Regexp (RFC 9485) regex support
+
+**Key Takeaway**: 
+- **Simple wildcard paths** (e.g., `$.data[*]`, `$.departments[*].employees[*]`) maintain true streaming regardless of nesting depth - perfect for large/very large files
+- **Advanced JSONPath filters** (e.g., `$[?@.price < 100]`, `$[0:10]`, `length()`) load entire document - use only for small/medium files
+- For large files, use simple wildcards + LINQ filtering to get constant memory usage
+
 
 **Sample Code**:
 - `samples/Blazing.Json.Queryable.Samples/Examples/AdvancedJsonPathSamples.cs`
@@ -955,6 +1018,8 @@ All samples are located in the `samples/Blazing.Json.Queryable.Samples` director
 3. **StreamQueries.cs** - Async streaming with `IAsyncEnumerable<T>`
 4. **AsyncQueries.cs** - .NET 10 async LINQ with async predicates and transformations
 5. **CustomConverters.cs** - Custom JSON converters and serialization options
+15. **ElementAccessSamples.cs** - Element access operations (ElementAt, Last, Single with C# Index support)
+16. **ConversionOperationsSamples.cs** - Conversion operations (ToDictionary, ToHashSet, ToLookup)
 6. **AdvancedScenarios.cs** - Real-world patterns, error handling, and best practices
 7. **LargeDatasetSamples.cs** - In-memory processing of large datasets (100K-1M records)
 8. **LargeDatasetFileStreamingSamples.cs** - True I/O streaming for memory-efficient large file processing
@@ -1032,6 +1097,23 @@ Also, if you find this library useful and you're feeling really generous, please
 
 ## History
 
+### V1.1.1 - 12 January, 2026
+
+- **Streaming Restoration for Simple Wildcard Paths**
+  - Restored true streaming for simple wildcard-only JSONPath expressions
+  - Multi-level wildcard paths (e.g., `$.departments[*].employees[*]`) now stream with constant memory usage
+- **Documentation Updates**:
+  - Updated [Performance Best Practices](#performance-best-practices) with accurate streaming behavior
+  - Clear guidance on when simple wildcards stream vs when advanced features materialize
+  - Memory usage guidelines for different file sizes
+- **Backward Compatibility**:
+  - All existing code continues to work without changes
+  - Advanced RFC 9535 features (filters, functions, slicing) continue to use optimized materialization
+  - No breaking changes to public API
+- **New Samples**:
+  - ElementAccessSamples.cs - Element access operations
+  - ConversionOperationsSamples.cs - Conversion operations
+
 ### V1.1.0 - 12 January, 2026
 
 - **RFC 9535 JSONPath Support**
@@ -1057,6 +1139,7 @@ Also, if you find this library useful and you're feeling really generous, please
 
 - **Core Features**:
   - Custom LINQ provider for JSON with 60+ LINQ methods
+    - Query Expression and Method Syntax support
   - Direct JSON processing without full deserialization
   - Early termination support for Take, First, Any operations
   - Memory-efficient streaming for files larger than RAM
@@ -1080,7 +1163,7 @@ Also, if you find this library useful and you're feeling really generous, please
 - **.NET 10 Features**:
   - Built-in async LINQ support with async predicates
   - Async transformations with Select
-  - Native cancellation token support
+  - Native cancellation support
   - Enhanced performance with latest runtime optimizations
 - **Performance Optimizations**:
   - Zero-allocation UTF-8 processing with Span<T>

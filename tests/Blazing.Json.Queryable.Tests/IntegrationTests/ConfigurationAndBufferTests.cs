@@ -26,7 +26,7 @@ public class ConfigurationAndBufferTests
         config.ShouldNotBeNull();
         config.ExpressionEvaluator.ShouldNotBeNull();
         config.JsonDeserializer.ShouldNotBeNull();
-        config.PropertyAccessor.ShouldNotBeNull();
+        // PropertyAccessor is now static - no longer part of configuration
     }
 
     [Fact]
@@ -37,7 +37,6 @@ public class ConfigurationAndBufferTests
         {
             ExpressionEvaluator = null!,
             JsonDeserializer = new SpanJsonDeserializer(null),
-            PropertyAccessor = new SpanPropertyAccessor(),
             SerializerOptions = null
         };
 
@@ -53,23 +52,6 @@ public class ConfigurationAndBufferTests
         {
             ExpressionEvaluator = new CompiledExpressionEvaluator(),
             JsonDeserializer = null!,
-            PropertyAccessor = new SpanPropertyAccessor(),
-            SerializerOptions = null
-        };
-
-        // Act & Assert
-        Should.Throw<Exceptions.ConfigurationException>(() => config.Validate());
-    }
-
-    [Fact]
-    public void Configuration_WithNullPropertyAccessor_FailsValidation()
-    {
-        // Arrange
-        var config = new JsonQueryableConfiguration
-        {
-            ExpressionEvaluator = new CompiledExpressionEvaluator(),
-            JsonDeserializer = new SpanJsonDeserializer(null),
-            PropertyAccessor = null!,
             SerializerOptions = null
         };
 
@@ -89,7 +71,6 @@ public class ConfigurationAndBufferTests
         {
             ExpressionEvaluator = new CompiledExpressionEvaluator(),
             JsonDeserializer = new SpanJsonDeserializer(customOptions),
-            PropertyAccessor = new SpanPropertyAccessor(),
             SerializerOptions = customOptions
         };
 
@@ -114,7 +95,6 @@ public class ConfigurationAndBufferTests
         {
             ExpressionEvaluator = new CompiledExpressionEvaluator(),
             JsonDeserializer = new SpanJsonDeserializer(null),
-            PropertyAccessor = new SpanPropertyAccessor(),
             SerializerOptions = null
         };
 

@@ -146,10 +146,10 @@ public interface IJsonDeserializer
     ///     byte[] buffer = ArrayPool&lt;byte&gt;.Shared.Rent(4096);
     ///     try
     ///     {
-    ///         while (await stream.ReadAsync(buffer) > 0)  // ✅ Async I/O
+    ///         while (await stream.ReadAsync(buffer) > 0)  // Async I/O
     ///         {
-    ///             var reader = new Utf8JsonReader(buffer);  // ✅ Sync reader
-    ///             yield return Deserialize&lt;T&gt;(ref reader);  // ✅ No await here
+    ///             var reader = new Utf8JsonReader(buffer);  // Sync reader
+    ///             yield return Deserialize&lt;T&gt;(ref reader);  // No await here
     ///         }
     ///     }
     ///     finally
@@ -211,8 +211,8 @@ public interface IJsonDeserializer
     /// var data = deserializer.DeserializeString&lt;Data&gt;(jsonString);
     /// 
     /// // Better alternative:
-    /// byte[] utf8Bytes = File.ReadAllBytes("data.json");  // ✅ Already UTF-8
-    /// var data = deserializer.Deserialize&lt;Data&gt;(utf8Bytes);  // ✅ No conversion
+    /// byte[] utf8Bytes = File.ReadAllBytes("data.json");  // Already UTF-8
+    /// var data = deserializer.Deserialize&lt;Data&gt;(utf8Bytes);  // No conversion
     /// </code>
     /// </example>
     T? DeserializeString<T>(string json);
