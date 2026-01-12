@@ -58,7 +58,7 @@
   - [Give a ⭐](#give-a)
   - [Support](#support)
   - [History](#history)
-    - [V1.1.1 - 13 January, 2026](#v1.1.1-13-january-2026)
+    - [V1.1.1 - 12 January, 2026](#v1.1.1-12-january-2026)
     - [V1.1.0 - 12 January, 2026](#v1.1.0-12-january-2026)
     - [V1.0.0 - 11 January, 2026](#v1.0.0-11-january-2026)
 
@@ -1018,6 +1018,8 @@ All samples are located in the `samples/Blazing.Json.Queryable.Samples` director
 3. **StreamQueries.cs** - Async streaming with `IAsyncEnumerable<T>`
 4. **AsyncQueries.cs** - .NET 10 async LINQ with async predicates and transformations
 5. **CustomConverters.cs** - Custom JSON converters and serialization options
+15. **ElementAccessSamples.cs** - Element access operations (ElementAt, Last, Single with C# Index support)
+16. **ConversionOperationsSamples.cs** - Conversion operations (ToDictionary, ToHashSet, ToLookup)
 6. **AdvancedScenarios.cs** - Real-world patterns, error handling, and best practices
 7. **LargeDatasetSamples.cs** - In-memory processing of large datasets (100K-1M records)
 8. **LargeDatasetFileStreamingSamples.cs** - True I/O streaming for memory-efficient large file processing
@@ -1027,8 +1029,6 @@ All samples are located in the `samples/Blazing.Json.Queryable.Samples` director
 12. **AdvancedLinqOperationsSamples.cs** - Advanced operations (Chunk, Zip, DistinctBy, ExceptBy, IntersectBy, UnionBy)
 13. **QuerySyntaxSamples.cs** - Query expression syntax (SQL-like declarative LINQ queries)
 14. **PerformanceComparison.cs** - Benchmarks comparing traditional vs streaming approaches
-15. **ElementAccessSamples.cs** - Element access operations (ElementAt, Last, Single with C# Index support)
-16. **ConversionOperationsSamples.cs** - Conversion operations (ToDictionary, ToHashSet, ToLookup)
 
 ### Benchmark Suites
 
@@ -1097,7 +1097,7 @@ Also, if you find this library useful and you're feeling really generous, please
 
 ## History
 
-### V1.1.1 - 13 January, 2026
+### V1.1.1 - 12 January, 2026
 
 - **Streaming Restoration for Simple Wildcard Paths**
   - Restored true streaming for simple wildcard-only JSONPath expressions
@@ -1110,6 +1110,9 @@ Also, if you find this library useful and you're feeling really generous, please
   - All existing code continues to work without changes
   - Advanced RFC 9535 features (filters, functions, slicing) continue to use optimized materialization
   - No breaking changes to public API
+- **New Samples**:
+  - ElementAccessSamples.cs - Element access operations
+  - ConversionOperationsSamples.cs - Conversion operations
 
 ### V1.1.0 - 12 January, 2026
 
