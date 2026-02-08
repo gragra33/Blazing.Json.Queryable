@@ -208,7 +208,7 @@ var json = """
     {"Id":2,"Name":"Bob","Age":25,"City":"Paris","IsActive":true},
     {"Id":3,"Name":"Charlie","Age":35,"City":"London","IsActive":false}
 ]
-""
+"""
 
 // Filtering
 var adults = JsonQueryable<Person>.FromString(json)
