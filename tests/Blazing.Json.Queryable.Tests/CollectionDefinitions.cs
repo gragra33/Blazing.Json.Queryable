@@ -7,12 +7,12 @@ namespace Blazing.Json.Queryable.Tests;
 /// </summary>
 /// <remarks>
 /// <para>
-/// <see cref="DisableParallelization"/> is set to <see langword="true"/> so that when any
+/// <see cref="Xunit.CollectionDefinitionAttribute.DisableParallelization"/> is set to <see langword="true"/> so that when any
 /// test in this collection executes, no other test collection runs concurrently.
 /// </para>
 /// <para>
 /// This is required because <see cref="Blazing.Json.Queryable.Implementations.SpanPropertyAccessor"/>
-/// uses a process-wide static <see cref="System.Collections.Concurrent.ConcurrentDictionary{TKey, TValue}"/>
+/// uses a process-wide static <see cref="System.Collections.Concurrent.ConcurrentDictionary{TKey,TValue}"/>
 /// cache. Tests in this collection call <c>ClearCache()</c> and assert on <c>CacheCount</c> —
 /// assertions that are only valid when no other test is concurrently populating the cache.
 /// </para>
