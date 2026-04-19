@@ -1,0 +1,89 @@
+name: Release
+
+on:
+    push:
+        branches:
+            - master
+
+jobs:
+    release:
+        name: Build, Test & Publish to NuGet
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/checkout@v5
+              with:
+                  fetch-depth: 0
+
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v5
+              with:
+                  dotnet-version: |
+                      10.0.x
+
+            - name: Restore
+              run: dotnet restore Blazing.Json.Queryable.slnx
+
+            - name: Build
+              run: dotnet build Blazing.Json.Queryable.slnx --no-restore --configuration Release -p:GeneratePackageOnBuild=false
+
+            - name: Test
+              run: |
+                  dotnet test tests/Blazing.Json.Queryable.Tests/Blazing.Json.Queryable.Tests.csproj \
+                    --no-build --no-restore \
+                    --configuration Release
+
+            - name: Extract version from project file
+              id: version
+              run: |
+                  VERSION=$(grep -m1 '<Version>' src/Blazing.Json.Queryable/Blazing.Json.Queryable.csproj \
+                    | sed 's/.*<Version>//;s/<\/Version>.*//' \
+                    | tr -d '[:space:]')
+                  echo "version=$VERSION" >> $GITHUB_OUTPUT
+                  echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+                  echo "Resolved version: $VERSION"
+
+            - name: Check if this version was already released
+              id: tag_check
+              run: |
+                  if git ls-remote --tags origin "refs/tags/v${{ steps.version.outputs.version }}" | grep -q .; then
+                    echo "exists=true" >> $GITHUB_OUTPUT
+                  else
+                    echo "exists=false" >> $GITHUB_OUTPUT
+                  fi
+
+            - name: Pack NuGet package
+              if: steps.tag_check.outputs.exists == 'false'
+              run: |
+                  dotnet pack src/Blazing.Json.Queryable/Blazing.Json.Queryable.csproj \
+                    --no-build --no-restore --configuration Release --output ./artifacts
+
+            - name: Create GitHub Release
+              if: steps.tag_check.outputs.exists == 'false'
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  gh release create "${{ steps.version.outputs.tag }}" \
+                    --title "Release ${{ steps.version.outputs.tag }}" \
+                    --generate-notes \
+                    ./artifacts/Blazing.Json.Queryable.${{ steps.version.outputs.version }}.nupkg \
+                    ./artifacts/Blazing.Json.Queryable.${{ steps.version.outputs.version }}.snupkg
+
+            - name: Push Blazing.Json.Queryable to NuGet.org
+              if: steps.tag_check.outputs.exists == 'false'
+              run: |
+                  dotnet nuget push \
+                    "./artifacts/Blazing.Json.Queryable.${{ steps.version.outputs.version }}.nupkg" \
+                    --api-key ${{ secrets.NUGET_API_KEY }} \
+                    --source https://api.nuget.org/v3/index.json \
+                    --skip-duplicate
+
+            - name: Push Blazing.Json.Queryable symbols to NuGet.org
+              if: steps.tag_check.outputs.exists == 'false'
+              run: |
+                  dotnet nuget push \
+                    "./artifacts/Blazing.Json.Queryable.${{ steps.version.outputs.version }}.snupkg" \
+                    --api-key ${{ secrets.NUGET_API_KEY }} \
+                    --source https://api.nuget.org/v3/index.json \
+                    --skip-duplicate
