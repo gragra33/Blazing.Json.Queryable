@@ -5,7 +5,8 @@
 
 .DESCRIPTION
     Validates and executes GitHub Actions workflows locally using actionlint (static analysis)
-    and act (Docker-based execution). Mirrors exactly what runs on GitHub Actions.
+    and act (Docker-based execution). Approximates the GitHub Actions workflows that run in CI.
+    Note: act uses the push event — PR-only jobs (e.g. validate-branch) are not exercised locally.
 
 .PARAMETER Mode
     dry      - Validate workflow graph via act dry-run only (requires Docker + act)
@@ -244,7 +245,13 @@ if ($Mode -in @('ci', 'all') -and $dockerAvailable -and $hasAct) {
         try {
             # Always pass --env RUNNING_LOCALLY=true so upload-artifact steps are skipped inside act.
             $actArgs = @($wf.Event, '--workflows', $wf.File, '--env', 'RUNNING_LOCALLY=true')
-            if ($Job) { $actArgs += @('-j', $Job) }
+            # -Job only applies to the CI workflow; release.yml has a different job name.
+            # Passing an unknown job name to act causes it to error immediately.
+            if ($Job -and $wf.Name -eq 'CI') {
+                $actArgs += @('-j', $Job)
+            } elseif ($Job -and $wf.Name -ne 'CI') {
+                Add-Warning "-Job '$Job' ignored for $($wf.Name) workflow — job name may not exist in that workflow. Use -Workflow ci to target a specific job."
+            }
 
             # Release workflow is gated on push to master; provide an explicit push event payload
             # so act's default ref matches the branch filter and the workflow is not silently skipped.

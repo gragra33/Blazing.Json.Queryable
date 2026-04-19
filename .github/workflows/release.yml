@@ -5,12 +5,6 @@ on:
         branches:
             - master
 
-# Declared here so actionlint can validate env.RUNNING_LOCALLY references below.
-# ci-cd-test-run.ps1 passes --env RUNNING_LOCALLY=true to act; on real GitHub Actions
-# the variable is empty so upload-artifact runs and failures are fatal.
-env:
-    RUNNING_LOCALLY: ""
-
 jobs:
     release:
         name: Build, Test & Publish to NuGet
@@ -63,7 +57,7 @@ jobs:
               if: steps.tag_check.outputs.exists == 'false'
               run: |
                   dotnet pack src/Blazing.Json.Queryable/Blazing.Json.Queryable.csproj \
-                    --no-build --configuration Release --output ./artifacts
+                    --no-build --no-restore --configuration Release --output ./artifacts
 
             - name: Create GitHub Release
               if: steps.tag_check.outputs.exists == 'false'
