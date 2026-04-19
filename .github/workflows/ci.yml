@@ -1,0 +1,73 @@
+name: CI
+
+on:
+    push:
+        branches:
+            - develop
+            - "feature/**"
+            - "fix/**"
+            - "hotfix/**"
+    pull_request:
+        branches:
+            - develop
+            - master
+
+# Declared here so actionlint can validate env.RUNNING_LOCALLY references below.
+# ci-cd-test-run.ps1 passes --env RUNNING_LOCALLY=true to act; on real GitHub Actions
+# the variable is empty so upload-artifact runs and failures are fatal.
+env:
+    RUNNING_LOCALLY: ""
+
+jobs:
+    validate-branch:
+        name: Validate Branch Name
+        runs-on: ubuntu-latest
+        if: github.event_name == 'pull_request'
+        steps:
+            - name: Check branch naming convention
+              env:
+                  BRANCH: ${{ github.head_ref }}
+              run: |
+                  if [[ ! "$BRANCH" =~ ^(feature|fix|hotfix)/.+ ]] && [[ "$BRANCH" != "develop" ]]; then
+                    echo "::error::Branch '$BRANCH' does not follow naming conventions."
+                    echo "::error::PR source branches must be 'develop' or prefixed with 'feature/', 'fix/', or 'hotfix/'."
+                    exit 1
+                  fi
+                  echo "Branch '$BRANCH' follows naming conventions."
+
+    build-and-test:
+        name: Build & Test
+        needs: validate-branch
+        # Run on push events (validate-branch skipped) OR on valid PRs (validate-branch succeeded)
+        if: always() && (needs.validate-branch.result == 'success' || needs.validate-branch.result == 'skipped')
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v5
+
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v5
+              with:
+                  dotnet-version: |
+                      10.0.x
+
+            - name: Restore
+              run: dotnet restore Blazing.Json.Queryable.slnx
+
+            - name: Build
+              run: dotnet build Blazing.Json.Queryable.slnx --no-restore --configuration Release -p:GeneratePackageOnBuild=false
+
+            - name: Test
+              run: |
+                  dotnet test tests/Blazing.Json.Queryable.Tests/Blazing.Json.Queryable.Tests.csproj \
+                    --no-build --no-restore \
+                    --configuration Release \
+                    --logger "trx;LogFileName=test-results.trx"
+
+            - name: Upload test results
+              uses: actions/upload-artifact@v7
+              # Skipped when running locally (ci-cd-test-run.ps1 passes --env RUNNING_LOCALLY=true to act).
+              # On real GitHub Actions RUNNING_LOCALLY is empty → step runs; upload failures are fatal.
+              if: always() && env.RUNNING_LOCALLY == ''
+              with:
+                  name: test-results
+                  path: "**/*.trx"
