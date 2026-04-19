@@ -9,6 +9,7 @@ namespace Blazing.Json.Queryable.Tests.UnitTests.Evaluators;
 /// <summary>
 /// Unit tests for SpanPropertyAccessor.
 /// </summary>
+[Collection("SpanPropertyAccessorCache")]
 public class SpanPropertyAccessorTests
 {
     public SpanPropertyAccessorTests()

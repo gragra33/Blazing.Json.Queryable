@@ -9,6 +9,7 @@ namespace Blazing.Json.Queryable.Tests.UnitTests.Performance;
 /// Performance tests for property accessor caching behavior.
 /// Validates that property lookups are cached and don't allocate per-access.
 /// </summary>
+[Collection("SpanPropertyAccessorCache")]
 public class PropertyAccessorCachingTests
 {
     public PropertyAccessorCachingTests()
